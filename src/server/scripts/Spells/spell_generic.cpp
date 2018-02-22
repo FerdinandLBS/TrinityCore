@@ -858,6 +858,24 @@ class spell_gen_choking_vines : public AuraScript
     }
 };
 
+// 5138 - Drain Mana
+// 8129 - Mana Burn
+class spell_gen_clear_fear_poly : public SpellScript
+{
+    PrepareSpellScript(spell_gen_clear_fear_poly);
+
+    void HandleAfterHit()
+    {
+        if (Unit* unitTarget = GetHitUnit())
+            unitTarget->RemoveAurasWithMechanic((1 << MECHANIC_FEAR) | (1 << MECHANIC_POLYMORPH));
+    }
+
+    void Register() override
+    {
+        AfterHit += SpellHitFn(spell_gen_clear_fear_poly::HandleAfterHit);
+    }
+};
+
 class spell_gen_clone : public SpellScript
 {
     PrepareSpellScript(spell_gen_clone);
@@ -1095,8 +1113,8 @@ class spell_gen_creature_permanent_feign_death : public AuraScript
         target->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
         target->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
 
-        if (target->GetTypeId() == TYPEID_UNIT)
-            target->ToCreature()->SetReactState(REACT_PASSIVE);
+        if (Creature* creature = target->ToCreature())
+            creature->SetReactState(REACT_PASSIVE);
     }
 
     void OnRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
@@ -1104,6 +1122,9 @@ class spell_gen_creature_permanent_feign_death : public AuraScript
         Unit* target = GetTarget();
         target->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
         target->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_FEIGN_DEATH);
+
+        if (Creature* creature = target->ToCreature())
+            creature->InitializeReactState();
     }
 
     void Register() override
@@ -1233,6 +1254,118 @@ class spell_gen_damage_reduction_aura : public AuraScript
         OnEffectApply += AuraEffectApplyFn(spell_gen_damage_reduction_aura::OnApply, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
         OnEffectRemove += AuraEffectRemoveFn(spell_gen_damage_reduction_aura::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
     }
+};
+
+class spell_gen_decay_over_time : public SpellScriptLoader
+{
+    public:
+        spell_gen_decay_over_time(char const* name) : SpellScriptLoader(name) { }
+
+        SpellScript* GetSpellScript() const override
+        {
+            return new spell_gen_decay_over_time_SpellScript();
+        }
+
+    private:
+        class spell_gen_decay_over_time_SpellScript : public SpellScript
+        {
+            PrepareSpellScript(spell_gen_decay_over_time_SpellScript);
+
+            void ModAuraStack()
+            {
+                if (Aura* aur = GetHitAura())
+                    aur->SetStackAmount(static_cast<uint8>(GetSpellInfo()->StackAmount));
+            }
+
+            void Register() override
+            {
+                AfterHit += SpellHitFn(spell_gen_decay_over_time_SpellScript::ModAuraStack);
+            }
+        };
+
+    protected:
+        class spell_gen_decay_over_time_AuraScript : public AuraScript
+        {
+            protected:
+                PrepareAuraScript(spell_gen_decay_over_time_AuraScript);
+
+                bool CheckProc(ProcEventInfo& eventInfo)
+                {
+                    return (eventInfo.GetSpellInfo() == GetSpellInfo());
+                }
+
+                void Decay(ProcEventInfo& /*eventInfo*/)
+                {
+                    PreventDefaultAction();
+                    ModStackAmount(-1);
+                }
+
+                void Register() override
+                {
+                    DoCheckProc += AuraCheckProcFn(spell_gen_decay_over_time_AuraScript::CheckProc);
+                    OnProc += AuraProcFn(spell_gen_decay_over_time_AuraScript::Decay);
+                }
+
+                ~spell_gen_decay_over_time_AuraScript() = default;
+        };
+
+        ~spell_gen_decay_over_time() = default;
+};
+
+enum FungalDecay
+{
+    // found in sniffs, there is no duration entry we can possibly use
+    AURA_DURATION = 12600
+};
+
+// 32065 - Fungal Decay
+class spell_gen_decay_over_time_fungal_decay : public spell_gen_decay_over_time
+{
+    public:
+        spell_gen_decay_over_time_fungal_decay() : spell_gen_decay_over_time("spell_gen_decay_over_time_fungal_decay") { }
+
+        class spell_gen_decay_over_time_fungal_decay_AuraScript : public spell_gen_decay_over_time_AuraScript
+        {
+            PrepareAuraScript(spell_gen_decay_over_time_fungal_decay_AuraScript);
+
+            void ModDuration(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
+            {
+                // only on actual reapply, not on stack decay
+                if (GetDuration() == GetMaxDuration())
+                {
+                    SetMaxDuration(AURA_DURATION);
+                    SetDuration(AURA_DURATION);
+                }
+            }
+
+            void Register() override
+            {
+                spell_gen_decay_over_time_AuraScript::Register();
+                OnEffectApply += AuraEffectApplyFn(spell_gen_decay_over_time_fungal_decay_AuraScript::ModDuration, EFFECT_0, SPELL_AURA_MOD_DECREASE_SPEED, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
+            }
+        };
+
+        AuraScript* GetAuraScript() const override
+        {
+            return new spell_gen_decay_over_time_fungal_decay_AuraScript();
+        }
+};
+
+// 36659 - Tail Sting
+class spell_gen_decay_over_time_tail_sting : public spell_gen_decay_over_time
+{
+    public:
+        spell_gen_decay_over_time_tail_sting() : spell_gen_decay_over_time("spell_gen_decay_over_time_tail_sting") { }
+
+        class spell_gen_decay_over_time_tail_sting_AuraScript : public spell_gen_decay_over_time_AuraScript
+        {
+            PrepareAuraScript(spell_gen_decay_over_time_tail_sting_AuraScript);
+        };
+
+        AuraScript* GetAuraScript() const override
+        {
+            return new spell_gen_decay_over_time_tail_sting_AuraScript();
+        }
 };
 
 enum DefendVisuals
@@ -3827,6 +3960,7 @@ void AddSC_generic_spell_scripts()
     RegisterAuraScript(spell_gen_chains_of_ice);
     RegisterSpellScript(spell_gen_chaos_blast);
     RegisterAuraScript(spell_gen_choking_vines);
+    RegisterSpellScript(spell_gen_clear_fear_poly);
     RegisterSpellScript(spell_gen_clone);
     RegisterSpellScript(spell_gen_clone_weapon);
     RegisterAuraScript(spell_gen_clone_weapon_aura);
@@ -3837,6 +3971,8 @@ void AddSC_generic_spell_scripts()
     new spell_gen_dalaran_disguise("spell_gen_sunreaver_disguise");
     new spell_gen_dalaran_disguise("spell_gen_silver_covenant_disguise");
     RegisterAuraScript(spell_gen_damage_reduction_aura);
+    new spell_gen_decay_over_time_fungal_decay();
+    new spell_gen_decay_over_time_tail_sting();
     RegisterAuraScript(spell_gen_defend);
     RegisterSpellScript(spell_gen_despawn_self);
     RegisterSpellScript(spell_gen_divine_storm_cd_reset);

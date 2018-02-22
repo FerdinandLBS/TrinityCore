@@ -928,7 +928,6 @@ enum TrinityStrings
     // Room for more level 3                1189-1199 not used
 
     // Debug commands
-    LANG_DO_NOT_USE_6X_DEBUG_AREATRIGGER_LEFT = 1999,
     LANG_CINEMATIC_NOT_EXIST              = 1200,
     LANG_MOVIE_NOT_EXIST                  = 1201,
     LANG_DEBUG_AREATRIGGER_ON             = 1202,
@@ -936,7 +935,7 @@ enum TrinityStrings
     LANG_DEBUG_AREATRIGGER_REACHED        = 1204,
 
     // 1205-1998 - free
-
+    LANG_DO_NOT_USE_6X_DEBUG_AREATRIGGER_LEFT = 1999,
     // Ticket Strings 2000-2030
     LANG_COMMAND_TICKETNEW                = 2000,
     LANG_COMMAND_TICKETUPDATED            = 2001,
@@ -1003,7 +1002,7 @@ enum TrinityStrings
     LANG_GOINFO_LOOTID                    = 5028,
     LANG_COMMAND_LOOKUP_MAX_RESULTS       = 5029,
     LANG_UNAUTHORIZED                     = 5030,
-    LANG_NPCINFO_AIINFO                   = 5031,
+    LANG_OBJECTINFO_AIINFO                = 5031,
     LANG_COMMAND_NO_BATTLEGROUND_FOUND    = 5032,
     LANG_COMMAND_NO_ACHIEVEMENT_CRITERIA_FOUND = 5033,
     LANG_COMMAND_NO_OUTDOOR_PVP_FORUND    = 5034,

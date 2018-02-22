@@ -981,7 +981,7 @@ bool Creature::AIM_Destroy()
     return true;
 }
 
-bool Creature::AIM_Initialize(CreatureAI* ai)
+bool Creature::AIM_Create(CreatureAI* ai /*= nullptr*/)
 {
     // make sure nothing can change the AI during AI update
     if (m_AI_locked)
@@ -995,12 +995,24 @@ bool Creature::AIM_Initialize(CreatureAI* ai)
     Motion_Initialize();
 
     i_AI = ai ? ai : FactorySelector::SelectAI(this);
+    return true;
+}
 
+void Creature::AI_InitializeAndEnable()
+{
     IsAIEnabled = true;
     i_AI->InitializeAI();
     // Initialize vehicle
     if (GetVehicleKit())
         GetVehicleKit()->Reset();
+}
+
+bool Creature::AIM_Initialize(CreatureAI* ai)
+{
+    if (!AIM_Create(ai))
+        return false;
+
+    AI_InitializeAndEnable();
     return true;
 }
 
@@ -1112,31 +1124,8 @@ Unit* Creature::SelectVictim()
 {
     Unit* target = nullptr;
 
-    ThreatManager& mgr = GetThreatManager();
-
-    if (mgr.CanHaveThreatList())
-    {
-        target = mgr.SelectVictim();
-        while (!target)
-        {
-            Unit* newTarget = nullptr;
-            // nothing found to attack - try to find something we're in combat with (but don't have a threat entry for yet) and start attacking it
-            for (auto const& pair : GetCombatManager().GetPvECombatRefs())
-            {
-                newTarget = pair.second->GetOther(this);
-                if (!mgr.IsThreatenedBy(newTarget, true))
-                {
-                    mgr.AddThreat(newTarget, 0.0f, nullptr, true, true);
-                    break;
-                }
-                else
-                    newTarget = nullptr;
-            }
-            if (!newTarget)
-                break;
-            target = mgr.SelectVictim();
-        }
-    }
+    if (CanHaveThreatList())
+        target = GetThreatManager().SelectVictim();
     else if (!HasReactState(REACT_PASSIVE))
     {
         // We're a player pet, probably
@@ -1175,15 +1164,6 @@ Unit* Creature::SelectVictim()
     /// @todo a vehicle may eat some mob, so mob should not evade
     if (GetVehicle())
         return nullptr;
-
-    // search nearby enemy before enter evade mode
-    if (HasReactState(REACT_AGGRESSIVE))
-    {
-        target = SelectNearestTargetInAttackDistance(m_CombatDistance ? m_CombatDistance : ATTACK_DISTANCE);
-
-        if (target && _IsTargetAcceptable(target) && CanCreatureAttack(target))
-            return target;
-    }
 
     Unit::AuraEffectList const& iAuras = GetAuraEffectsByType(SPELL_AURA_MOD_INVISIBILITY);
     if (!iAuras.empty())
@@ -3047,6 +3027,10 @@ void Creature::FocusTarget(Spell const* focusSpell, WorldObject const* target)
     if (m_focusSpell)
         return;
 
+    // some spells shouldn't track targets
+    if (focusSpell->IsFocusDisabled())
+        return;
+
     SpellInfo const* spellInfo = focusSpell->GetSpellInfo();
 
     // don't use spell focus for vehicle spells
@@ -3105,7 +3089,7 @@ void Creature::FocusTarget(Spell const* focusSpell, WorldObject const* target)
     }
 
     if (noTurnDuringCast)
-        AddUnitState(UNIT_STATE_CANNOT_TURN);
+        AddUnitState(UNIT_STATE_FOCUSING);
 }
 
 bool Creature::IsFocusing(Spell const* focusSpell, bool withDelay)
@@ -3159,7 +3143,7 @@ void Creature::ReleaseFocus(Spell const* focusSpell, bool withDelay)
         MustReacquireTarget();
 
     if (m_focusSpell->GetSpellInfo()->HasAttribute(SPELL_ATTR5_DONT_TURN_DURING_CAST))
-        ClearUnitState(UNIT_STATE_CANNOT_TURN);
+        ClearUnitState(UNIT_STATE_FOCUSING);
 
     m_focusSpell = nullptr;
     m_focusDelay = (!IsPet() && withDelay) ? GameTime::GetGameTimeMS() : 0; // don't allow re-target right away to prevent visual bugs

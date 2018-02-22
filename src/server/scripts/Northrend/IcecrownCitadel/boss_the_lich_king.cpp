@@ -1077,6 +1077,7 @@ class boss_the_lich_king : public CreatureScript
                                     triggers.sort(Trinity::ObjectDistanceOrderPred(terenas, true));
                                     Creature* spawner = triggers.front();
                                     spawner->setActive(true);
+                                    spawner->SetFarVisible(true);
                                     spawner->CastSpell(spawner, SPELL_SUMMON_SPIRIT_BOMB_1, true);  // summons bombs randomly
                                     spawner->CastSpell(spawner, SPELL_SUMMON_SPIRIT_BOMB_2, true);  // summons bombs on players
                                     spawner->m_Events.AddEvent(new TriggerWickedSpirit(spawner), spawner->m_Events.CalculateTime(3000));
@@ -1519,10 +1520,8 @@ class npc_valkyr_shadowguard : public CreatureScript
 
             void ScheduleHeroicEvents()
             {
-                DoZoneInCombat();
                 _events.Reset();
                 _events.ScheduleEvent(EVENT_MOVE_TO_CENTER, 1);
-                _events.ScheduleEvent(EVENT_LIFE_SIPHON, 2000);
                 me->ClearUnitState(UNIT_STATE_EVADE);
             }
 
@@ -1560,11 +1559,14 @@ class npc_valkyr_shadowguard : public CreatureScript
                                 DoCast(target, SPELL_VALKYR_CARRY);
                                 _dropPoint.Relocate(triggers.front());
                                 _events.ScheduleEvent(EVENT_MOVE_TO_DROP_POS, 1500);
-
                             }
                         }
                         else
                             me->DespawnOrUnsummon();
+                        break;
+                    case POINT_SIPHON:
+                        DoZoneInCombat();
+                        _events.ScheduleEvent(EVENT_LIFE_SIPHON, 2000);
                         break;
                     default:
                         break;
@@ -1763,6 +1765,7 @@ class npc_terenas_menethil : public CreatureScript
                 {
                     case ACTION_FROSTMOURNE_INTRO:
                         me->setActive(true);
+                        me->SetFarVisible(false);
                         if (!IsHeroic())
                             me->SetHealth(me->GetMaxHealth() / 2);
                         DoCast(me, SPELL_LIGHTS_FAVOR);

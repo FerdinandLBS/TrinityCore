@@ -57,6 +57,7 @@ enum ShamanSpells
     SPELL_SHAMAN_MANA_SPRING_TOTEM_ENERGIZE     = 52032,
     SPELL_SHAMAN_MANA_TIDE_TOTEM                = 39609,
     SPELL_SHAMAN_NATURE_GUARDIAN                = 31616,
+    SPELL_SHAMAN_NATURE_GUARDIAN_THREAT         = 39301, // Serverside
     SPELL_SHAMAN_SATED                          = 57724,
     SPELL_SHAMAN_STORM_EARTH_AND_FIRE           = 51483,
     SPELL_SHAMAN_TOTEM_EARTHBIND_EARTHGRAB      = 64695,
@@ -714,7 +715,7 @@ class spell_sha_flametongue_weapon : public SpellScriptLoader
                 if (!item || !item->IsEquipped())
                     return false;
 
-                WeaponAttackType attType = static_cast<WeaponAttackType>(player->GetAttackBySlot(item->GetSlot()));
+                WeaponAttackType attType = Player::GetAttackBySlot(item->GetSlot());
                 if (attType != BASE_ATTACK && attType != OFF_ATTACK)
                     return false;
 
@@ -737,26 +738,32 @@ class spell_sha_flametongue_weapon : public SpellScriptLoader
 
                 Item* item = ASSERT_NOTNULL(player->GetWeaponForAttack(attType));
 
-                float const basePoints = GetSpellInfo()->Effects[aurEff->GetEffIndex()].CalcValue();
+                float basePoints = GetSpellInfo()->Effects[aurEff->GetEffIndex()].CalcValue();
 
                 // Flametongue max damage is normalized based on a 4.0 speed weapon
                 // Tooltip says max damage = BasePoints / 25, so BasePoints / 25 / 4 to get base damage per 1.0s AS
+                float attackSpeed = player->GetAttackTime(attType) / 1000.f;
                 float fireDamage = basePoints / 100.0f;
-                float const attackSpeed = player->GetAttackTime(attType) / 1000.f;
                 fireDamage *= attackSpeed;
 
                 // clip value between (BasePoints / 77) and (BasePoints / 25) as the tooltip indicates
                 RoundToInterval(fireDamage, basePoints / 77.0f, basePoints / 25.0f);
 
                 // Calculate Spell Power scaling
-                float spellPowerBonus = player->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE) + target->SpellBaseDamageBonusTaken(SPELL_SCHOOL_MASK_FIRE);
+                float spellPowerBonus = player->SpellBaseDamageBonusDone(SPELL_SCHOOL_MASK_FIRE);
+                spellPowerBonus += target->GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_DAMAGE_TAKEN, SPELL_SCHOOL_MASK_FIRE);
+
+                // calculate penalty from passive aura as is the one with level
+                float const factorMod = player->CalculateSpellpowerCoefficientLevelPenalty(GetSpellInfo());
+
                 float const spCoeff = 0.03811f;
-                spellPowerBonus *= spCoeff * attackSpeed;
+                spellPowerBonus *= spCoeff * attackSpeed * factorMod;
 
                 // All done, now proc damage
                 CastSpellExtraArgs args(aurEff);
-                args.CastItem = item;
-                args.AddSpellBP0(fireDamage + spellPowerBonus);
+                args
+                    .SetCastItem(item)
+                    .AddSpellBP0(fireDamage + spellPowerBonus);
                 player->CastSpell(target, SPELL_SHAMAN_FLAMETONGUE_ATTACK, args);
             }
 
@@ -983,19 +990,22 @@ class spell_sha_healing_stream_totem : public SpellScriptLoader
                 if (Unit* target = GetHitUnit())
                 {
                     Unit* caster = GetCaster();
-                    if (caster->GetTypeId() == TYPEID_UNIT && caster->IsTotem())
-                        if (Unit* owner = caster->GetOwner())
-                            caster = owner;
+                    ObjectGuid originalCasterGuid = caster->GetGUID();
 
-                    // Restorative Totems
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, SHAMAN_ICON_ID_RESTORATIVE_TOTEMS, EFFECT_1))
-                        AddPct(damage, aurEff->GetAmount());
+                    if (Player* player = caster->GetAffectingPlayer())
+                    {
+                        originalCasterGuid = player->GetGUID();
 
-                    // Glyph of Healing Stream Totem
-                    if (AuraEffect const* aurEff = caster->GetAuraEffect(SPELL_SHAMAN_GLYPH_OF_HEALING_STREAM_TOTEM, EFFECT_0))
-                        AddPct(damage, aurEff->GetAmount());
+                        // Restorative Totems
+                        if (AuraEffect const* aurEff = player->GetAuraEffect(SPELL_AURA_DUMMY, SPELLFAMILY_SHAMAN, SHAMAN_ICON_ID_RESTORATIVE_TOTEMS, EFFECT_1))
+                            AddPct(damage, aurEff->GetAmount());
 
-                    CastSpellExtraArgs args(GetOriginalCaster()->GetGUID());
+                        // Glyph of Healing Stream Totem
+                        if (AuraEffect const* aurEff = player->GetAuraEffect(SPELL_SHAMAN_GLYPH_OF_HEALING_STREAM_TOTEM, EFFECT_0))
+                            AddPct(damage, aurEff->GetAmount());
+                    }
+
+                    CastSpellExtraArgs args(originalCasterGuid);
                     args.AddSpellBP0(damage);
                     caster->CastSpell(target, SPELL_SHAMAN_TOTEM_HEALING_STREAM_HEAL, args);
                 }
@@ -1638,36 +1648,42 @@ public:
 
         bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            return ValidateSpellInfo({ SPELL_SHAMAN_NATURE_GUARDIAN });
+            return ValidateSpellInfo(
+                {
+                    SPELL_SHAMAN_NATURE_GUARDIAN,
+                    SPELL_SHAMAN_NATURE_GUARDIAN_THREAT
+                });
+        }
+
+        bool CheckProc(ProcEventInfo& eventInfo)
+        {
+            DamageInfo* damageInfo = eventInfo.GetDamageInfo();
+            if (!damageInfo || !damageInfo->GetDamage())
+                return false;
+
+            int32 healthpct = GetSpellInfo()->Effects[EFFECT_1].CalcValue();
+            if (Unit* target = eventInfo.GetActionTarget())
+                if (target->HealthBelowPctDamaged(healthpct, damageInfo->GetDamage()))
+                    return true;
+
+            return false;
         }
 
         void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
         {
             PreventDefaultAction();
-            DamageInfo* damageInfo = eventInfo.GetDamageInfo();
-            if (!damageInfo || !damageInfo->GetDamage())
-                return;
 
-            int32 healthpct = aurEff->GetSpellInfo()->Effects[EFFECT_1].CalcValue(); // %s2 - the 30% threshold for health
-
-            if (Unit* target = eventInfo.GetActionTarget())
-            {
-                if (target->HealthBelowPctDamaged(healthpct, damageInfo->GetDamage()))
-                {
-                    CastSpellExtraArgs args(aurEff);
-                    args.AddSpellBP0(CalculatePct(target->GetMaxHealth(), aurEff->GetAmount()));
-                    target->CastSpell(target, SPELL_SHAMAN_NATURE_GUARDIAN, args);
-
-                    // Threat reduction is around 10% confirmed in retail and from wiki
-                    Unit* attacker = eventInfo.GetActor();
-                    if (attacker->IsAlive())
-                        attacker->GetThreatManager().ModifyThreatByPercent(target, -10);
-                }
-            }
+            Unit* target = eventInfo.GetActionTarget();
+            CastSpellExtraArgs args(aurEff);
+            args.AddSpellBP0(CalculatePct(target->GetMaxHealth(), aurEff->GetAmount()));
+            target->CastSpell(target, SPELL_SHAMAN_NATURE_GUARDIAN, args);
+            if (Unit* attacker = eventInfo.GetActor())
+                target->CastSpell(attacker, SPELL_SHAMAN_NATURE_GUARDIAN_THREAT, true);
         }
 
         void Register() override
         {
+            DoCheckProc += AuraCheckProcFn(spell_sha_nature_guardian_AuraScript::CheckProc);
             OnEffectProc += AuraEffectProcFn(spell_sha_nature_guardian_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
         }
     };
