@@ -169,7 +169,7 @@ struct ManaVoidSelector : public std::unary_function<Unit*, bool>
 
         bool operator()(Unit* unit) const
         {
-            return unit->getPowerType() == POWER_MANA && _source->GetDistance(unit) > 15.0f;
+            return unit->GetPowerType() == POWER_MANA && _source->GetDistance(unit) > 15.0f;
         }
 
         WorldObject const* _source;
@@ -1035,9 +1035,9 @@ class npc_dream_portal : public CreatureScript
             {
             }
 
-            void OnSpellClick(Unit* /*clicker*/, bool& result) override
+            void OnSpellClick(Unit* /*clicker*/, bool spellClickHandled) override
             {
-                if (!result)
+                if (!spellClickHandled)
                     return;
 
                 _used = true;

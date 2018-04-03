@@ -72,10 +72,7 @@ bool TargetedMovementGenerator<T, D>::DoUpdate(T* owner, uint32 diff)
                 transport->CalculatePassengerPosition(destination.x, destination.y, destination.z);
 
         // First check distance
-        if (owner->GetTypeId() == TYPEID_UNIT && owner->ToCreature()->CanFly())
-            targetMoved = !GetTarget()->IsInDist(destination.x, destination.y, destination.z, distance);
-        else
-            targetMoved = !GetTarget()->IsInDist2d(destination.x, destination.y, distance);
+        targetMoved = !GetTarget()->IsInDist(destination.x, destination.y, destination.z, distance);
 
         // then, if the target is in range, check also Line of Sight.
         if (!targetMoved)
@@ -133,24 +130,23 @@ void TargetedMovementGenerator<T, D>::SetTargetLocation(T* owner, bool updateDes
             if (GetTarget()->IsWithinDistInMap(owner, CONTACT_DISTANCE))
                 return;
 
-            GetTarget()->GetContactPoint(owner, x, y, z);
+            GetTarget()->GetNearPoint(owner, x, y, z, CONTACT_DISTANCE, GetTarget()->GetAbsoluteAngle(owner));
         }
         else
         {
             float distance = _offset + 1.0f;
-            float size = owner->GetCombatReach();
 
             if (owner->IsPet() && GetTarget()->GetTypeId() == TYPEID_PLAYER)
-            {
                 distance = 1.0f;
-                size = 1.0f;
-            }
 
             if (GetTarget()->IsWithinDistInMap(owner, distance))
                 return;
 
-            GetTarget()->GetClosePoint(x, y, z, size, _offset, _angle);
+            GetTarget()->GetClosePoint(x, y, z, _offset, _angle);
         }
+
+        if (owner->IsHovering())
+            owner->UpdateAllowedPositionZ(x, y, z);
     }
     else
     {

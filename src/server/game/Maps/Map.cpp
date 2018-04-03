@@ -1029,12 +1029,6 @@ void Map::PlayerRelocation(Player* player, float x, float y, float z, float orie
     Cell old_cell(player->GetPositionX(), player->GetPositionY());
     Cell new_cell(x, y);
 
-    //! If hovering, always increase our server-side Z position
-    //! Client automatically projects correct position based on Z coord sent in monster move
-    //! and UNIT_FIELD_HOVERHEIGHT sent in object updates
-    if (player->HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
-        z += player->GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
-
     player->Relocate(x, y, z, orientation);
     if (player->IsVehicle())
         player->GetVehicleKit()->RelocatePassengers();
@@ -1064,12 +1058,6 @@ void Map::CreatureRelocation(Creature* creature, float x, float y, float z, floa
 
     if (!respawnRelocationOnFail && !getNGrid(new_cell.GridX(), new_cell.GridY()))
         return;
-
-    //! If hovering, always increase our server-side Z position
-    //! Client automatically projects correct position based on Z coord sent in monster move
-    //! and UNIT_FIELD_HOVERHEIGHT sent in object updates
-    if (creature->HasUnitMovementFlag(MOVEMENTFLAG_HOVER))
-        z += creature->GetFloatValue(UNIT_FIELD_HOVERHEIGHT);
 
     // delay creature move for grid/cell to grid/cell moves
     if (old_cell.DiffCell(new_cell) || old_cell.DiffGrid(new_cell))
@@ -2457,10 +2445,8 @@ float Map::GetVMapFloor(float x, float y, float z, float maxSearchDist, float co
     return VMAP::VMapFactory::createOrGetVMapManager()->getHeight(GetId(), x, y, z + collisionHeight, maxSearchDist);
 }
 
-inline bool IsOutdoorWMO(uint32 mogpFlags, int32 /*adtId*/, int32 /*rootId*/, int32 /*groupId*/, WMOAreaTableEntry const* wmoEntry, AreaTableEntry const* atEntry)
+inline bool IsOutdoorWMO(uint32 mogpFlags, WMOAreaTableEntry const* wmoEntry, AreaTableEntry const* atEntry)
 {
-    bool outdoor = true;
-
     if (wmoEntry && atEntry)
     {
         if (atEntry->flags & AREA_FLAG_OUTSIDE)
@@ -2469,16 +2455,15 @@ inline bool IsOutdoorWMO(uint32 mogpFlags, int32 /*adtId*/, int32 /*rootId*/, in
             return false;
     }
 
-    outdoor = (mogpFlags & 0x8) != 0;
-
     if (wmoEntry)
     {
         if (wmoEntry->Flags & 4)
             return true;
         if (wmoEntry->Flags & 2)
-            outdoor = false;
+            return false;
     }
-    return outdoor;
+
+    return (mogpFlags & 0x8);
 }
 
 bool Map::IsOutdoors(float x, float y, float z) const
@@ -2491,13 +2476,13 @@ bool Map::IsOutdoors(float x, float y, float z) const
         return true;
 
     AreaTableEntry const* atEntry = nullptr;
-    WMOAreaTableEntry const* wmoEntry= GetWMOAreaTableEntryByTripple(rootId, adtId, groupId);
+    WMOAreaTableEntry const* wmoEntry = GetWMOAreaTableEntryByTripple(rootId, adtId, groupId);
     if (wmoEntry)
     {
         TC_LOG_DEBUG("maps", "Got WMOAreaTableEntry! flag %u, areaid %u", wmoEntry->Flags, wmoEntry->areaId);
         atEntry = sAreaTableStore.LookupEntry(wmoEntry->areaId);
     }
-    return IsOutdoorWMO(mogpFlags, adtId, rootId, groupId, wmoEntry, atEntry);
+    return IsOutdoorWMO(mogpFlags, wmoEntry, atEntry);
 }
 
 bool Map::GetAreaInfo(float x, float y, float z, uint32 &flags, int32 &adtId, int32 &rootId, int32 &groupId) const
@@ -2551,7 +2536,7 @@ uint32 Map::GetAreaId(float x, float y, float z, bool *isOutdoors) const
     if (isOutdoors)
     {
         if (haveAreaInfo)
-            *isOutdoors = IsOutdoorWMO(mogpFlags, adtId, rootId, groupId, wmoEntry, atEntry);
+            *isOutdoors = IsOutdoorWMO(mogpFlags, wmoEntry, atEntry);
         else
             *isOutdoors = true;
     }
@@ -2684,20 +2669,24 @@ void Map::GetFullTerrainStatusForPosition(float x, float y, float z, PositionFul
 
     // area lookup
     AreaTableEntry const* areaEntry = nullptr;
-    if (vmapData.areaInfo && (z <= mapHeight || mapHeight <= vmapData.floorZ))
-        if (WMOAreaTableEntry const* wmoEntry = GetWMOAreaTableEntryByTripple(vmapData.areaInfo->rootId, vmapData.areaInfo->adtId, vmapData.areaInfo->groupId))
+    WMOAreaTableEntry const* wmoEntry = nullptr;
+    // the vmap floor is our floor if either
+    //  - the vmap floor is above the gridmap floor
+    // or
+    //  - we are below the gridmap floor
+    if (vmapData.areaInfo && (G3D::fuzzyLt(z, mapHeight - GROUND_HEIGHT_TOLERANCE) || mapHeight <= vmapData.floorZ))
+        if ((wmoEntry = GetWMOAreaTableEntryByTripple(vmapData.areaInfo->rootId, vmapData.areaInfo->adtId, vmapData.areaInfo->groupId)))
             areaEntry = sAreaTableStore.LookupEntry(wmoEntry->areaId);
 
     data.areaId = 0;
 
     if (areaEntry)
     {
-        data.floorZ = vmapData.floorZ;
         data.areaId = areaEntry->ID;
+        data.floorZ = vmapData.floorZ;
     }
     else
     {
-        data.floorZ = mapHeight;
         if (gmap)
             data.areaId = gmap->getArea(x, y);
 
@@ -2706,7 +2695,14 @@ void Map::GetFullTerrainStatusForPosition(float x, float y, float z, PositionFul
 
         if (data.areaId)
             areaEntry = sAreaTableStore.LookupEntry(data.areaId);
+
+        data.floorZ = mapHeight;
     }
+
+    if (vmapData.areaInfo)
+        data.outdoors = IsOutdoorWMO(vmapData.areaInfo->mogpFlags, wmoEntry, areaEntry);
+    else
+        data.outdoors = true; // @todo default true taken from old GetAreaId check, maybe review
 
     // liquid processing
     data.liquidStatus = LIQUID_MAP_NO_WATER;
@@ -3399,8 +3395,22 @@ bool Map::IsSpawnGroupActive(uint32 groupId) const
     return (_toggledSpawnGroupIds.find(groupId) != _toggledSpawnGroupIds.end()) != !(data->flags & SPAWNGROUP_FLAG_MANUAL_SPAWN);
 }
 
+void Map::AddFarSpellCallback(FarSpellCallback&& callback)
+{
+    _farSpellCallbacks.Enqueue(new FarSpellCallback(std::move(callback)));
+}
+
 void Map::DelayedUpdate(uint32 t_diff)
 {
+    {
+        FarSpellCallback* callback;
+        while (_farSpellCallbacks.Dequeue(callback))
+        {
+            (*callback)(this);
+            delete callback;
+        }
+    }
+
     for (_transportsUpdateIter = _transports.begin(); _transportsUpdateIter != _transports.end();)
     {
         Transport* transport = *_transportsUpdateIter;
