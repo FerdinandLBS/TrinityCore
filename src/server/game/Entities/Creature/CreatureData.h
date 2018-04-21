@@ -296,7 +296,8 @@ struct CreatureLevelScaling
 {
     uint16 MinLevel;
     uint16 MaxLevel;
-    int16 DeltaLevel;
+    int16 DeltaLevelMin;
+    int16 DeltaLevelMax;
 };
 
 // from `creature_template` table
@@ -500,7 +501,7 @@ struct CreatureData
                      posX(0.0f), posY(0.0f), posZ(0.0f), orientation(0.0f), spawntimesecs(0),
                      spawndist(0.0f), currentwaypoint(0), curhealth(0), curmana(0), movementType(0),
                      spawnMask(0), npcflag(0), unit_flags(0), unit_flags2(0), unit_flags3(0), dynamicflags(0),
-                     phaseId(0), phaseGroup(0), ScriptId(0), dbData(true) { }
+                     phaseUseFlags(0), phaseId(0), phaseGroup(0), terrainSwapMap(-1), ScriptId(0), dbData(true) { }
     uint32 id;                                              // entry in creature_template
     uint16 mapid;
     uint32 displayid;
@@ -521,8 +522,10 @@ struct CreatureData
     uint32 unit_flags2;                                     // enum UnitFlags2 mask values
     uint32 unit_flags3;                                     // enum UnitFlags3 mask values
     uint32 dynamicflags;
+    uint8 phaseUseFlags;
     uint32 phaseId;
     uint32 phaseGroup;
+    int32 terrainSwapMap;
     uint32 ScriptId;
     bool dbData;
 };
