@@ -67,7 +67,7 @@ enum RotateDirection : uint8
     ROTATE_DIRECTION_RIGHT
 };
 
-struct ChaseRange
+struct TC_GAME_API ChaseRange
 {
     ChaseRange(float range);
     ChaseRange(float _minRange, float _maxRange);
@@ -80,7 +80,7 @@ struct ChaseRange
     float MaxTolerance; // ...and if we are, we will move into this range
 };
 
-struct ChaseAngle
+struct TC_GAME_API ChaseAngle
 {
     ChaseAngle(float angle, float _tolerance = M_PI_4);
 
@@ -91,5 +91,8 @@ struct ChaseAngle
     float LowerBound() const;
     bool IsAngleOkay(float relativeAngle) const;
 };
+
+inline bool IsInvalidMovementGeneratorType(uint8 const type) { return type == MAX_DB_MOTION_TYPE || type >= MAX_MOTION_TYPE; }
+inline bool IsInvalidMovementSlot(uint8 const slot) { return slot >= MAX_MOTION_SLOT; }
 
 #endif
