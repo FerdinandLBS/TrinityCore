@@ -59,6 +59,7 @@
 #include "World.h"
 #include "WorldPacket.h"
 #include "WorldSession.h"
+#include "MapManager.h"
 
 SpellEffectHandlerFn SpellEffectHandlers[TOTAL_SPELL_EFFECTS] =
 {
@@ -4532,8 +4533,88 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
     if (!m_targets.HasDst())
         return;
 
+
+    if (m_spellInfo->RangeEntry->ID == 1)                        //self range
+    {
+        float dis = 0;
+        // Start Info //
+        bool succ = true;
+        float cx, cy, cz;
+        float dx, dy, dz, z[2];
+        float angle = unitTarget->GetOrientation();
+        unitTarget->GetPosition(cx, cy, cz);
+
+        for (int i = 0; i < 3; i++) {
+            if (m_spellInfo->Effects[i].IsEffect(SPELL_EFFECT_LEAP)) {
+                dis = m_spellInfo->Effects[i].RadiusEntry->RadiusMax;
+                if (dis > 1.0f)
+                    dis -= 1.0f; // prefix distance
+                break;
+            }
+        }
+
+        //Check use of vamps//
+        bool useVmap = false;
+        bool swapZone = true;
+
+        z[0] = m_caster->GetMap()->GetHeight(m_caster->GetPhaseMask(), cx, cy, cz, false);
+        z[1] = m_caster->GetMap()->GetHeight(m_caster->GetPhaseMask(), cx, cy, cz, true);
+        if (z[0] <= z[1])
+            useVmap = true;
+
+        //Going foward 0.5f until max distance
+        for (float i = 0.5f; i < dis; i += 0.5f)
+        {
+            unitTarget->GetNearPoint2D(nullptr, dx, dy, i, angle);
+           
+                //dz = sMapMgr->FindMap(mapid, instanceId)->GetHeight(dx, dy, cz + 100, useVmap);
+            dz = m_caster->GetMap()->GetHeight(m_caster->GetPhaseMask(), dx, dy, cz+1, true);
+
+            //Prevent climbing and go around object maybe 2.0f is to small? use 3.0f?
+            if ((dz - cz) < 2.0f && (dz - cz) > -2.0f && (unitTarget->IsWithinLOS(dx, dy, dz)))
+            {
+                //No climb, the z differenze between this and prev step is ok. Store this destination for future use or check.
+                cx = dx;
+                cy = dy;
+                cz = dz;
+            }
+            else
+            {
+                //Something wrong with los or z differenze... maybe we are going from outer world inside a building or viceversa
+                if (swapZone) {
+                    //so... change use of vamp and go back 1 step backward and recheck again.
+                    swapZone = false;
+                    useVmap = !useVmap;
+                    i -= 0.5f;
+                }
+                else
+                {
+                    //bad recheck result... so break this and use last good coord for teleport player...
+                    dz += 0.5f;
+                    if (i <= 1.0f && !unitTarget->IsOutdoors())
+                        succ = false;
+                    break;
+                }
+            }
+        }
+
+        //Prevent Falling during swap building/outerspace
+        unitTarget->UpdateGroundPositionZ(cx, cy, cz);
+
+        if (unitTarget->GetTypeId() == TYPEID_PLAYER)
+            unitTarget->NearTeleportTo(cx, cy, cz, unitTarget->GetOrientation(), unitTarget == m_caster);
+            //((Player*)unitTarget)->TeleportTo(mapid, cx, cy, cz, unitTarget->GetOrientation(), TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET | (unitTarget == m_caster ? TELE_TO_SPELL : 0));
+        else
+            m_caster->GetMap()->CreatureRelocation((Creature*)unitTarget, cx, cy, cz, unitTarget->GetOrientation());
+
+        if (succ)
+            return;
+    }
+
     Position pos = destTarget->GetPosition();
-    unitTarget->NearTeleportTo(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), pos.GetOrientation(), unitTarget == m_caster);
+
+    unitTarget->NearTeleportTo(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ()+0.3f, pos.GetOrientation(), unitTarget == m_caster);
+    
 }
 
 void Spell::EffectReputation(SpellEffIndex effIndex)

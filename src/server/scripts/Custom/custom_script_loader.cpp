@@ -20,6 +20,10 @@
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
+
+void AddSC_telebook_script();
+
 void AddCustomScripts()
 {
+    AddSC_telebook_script();
 }
