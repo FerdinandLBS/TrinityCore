@@ -95,6 +95,16 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
     GetPlayer()->RepopAtGraveyard();
 }
 
+void BuildSpecailTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+
+    AddGossipItemFor(player, 4, "黑石塔 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
 void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
@@ -125,13 +135,13 @@ void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
 void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
 {
     switch (action) {
-    case GOSSIP_ACTION_INFO_DEF + 1:
+    case GOSSIP_ACTION_INFO_DEF + 1: // StormWind City
         player->TeleportTo(0, -9065, 434, 94, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 2:
+    case GOSSIP_ACTION_INFO_DEF + 2: // TLB
         player->TeleportTo(0, -5032, -819, 495, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 3:
+    case GOSSIP_ACTION_INFO_DEF + 3: // DNSS
         player->TeleportTo(1, 9961, 2055, 1329, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 4: //埃索达
@@ -140,10 +150,10 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 5: //agrm
         player->TeleportTo(1, 1317, -4383, 27, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 6:
+    case GOSSIP_ACTION_INFO_DEF + 6: // LTY
         player->TeleportTo(1, -1391, 140, 23, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 7:
+    case GOSSIP_ACTION_INFO_DEF + 7: // UnderCity
         player->TeleportTo(0, 1909, 235, 53, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 8: //银月城

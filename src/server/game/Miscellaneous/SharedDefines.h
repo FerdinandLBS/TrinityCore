@@ -1253,7 +1253,10 @@ enum AuraStateType
     //AURA_STATE_UNKNOWN20                  = 20,           //  c  | only (45317 Suicide)
     //AURA_STATE_UNKNOWN21                  = 21,           //     | not used
     AURA_STATE_UNKNOWN22                    = 22,           // C  t| varius spells (63884, 50240)
-    AURA_STATE_HEALTH_ABOVE_75_PERCENT      = 23            // C   |
+    AURA_STATE_HEALTH_ABOVE_75_PERCENT      = 23,           // C   |
+
+    //------ SPLITE LINE OF CUSTOMIZED SETTING -------
+    AURA_STATE_FROST_ARROW                  = 1001          //     | enable frost arrow
 };
 
 #define PER_CASTER_AURA_STATE_MASK (\

@@ -3417,7 +3417,8 @@ void Spell::_cast(bool skipCheck)
             if (id < 0)
             {
                 if (Unit* unitCaster = m_caster->ToUnit())
-                    unitCaster->RemoveAurasDueToSpell(-id);
+                    unitCaster->RemoveAuraFromStack(-id);
+                    //unitCaster->RemoveAurasDueToSpell(-id);
             }
             else
                 m_caster->CastSpell(m_targets.GetUnitTarget() ? m_targets.GetUnitTarget() : m_caster, id, true);
