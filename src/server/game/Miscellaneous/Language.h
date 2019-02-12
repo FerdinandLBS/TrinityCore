@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -340,7 +340,7 @@ enum TrinityStrings
     LANG_COMMAND_MODIFY_ARENA             = 306,
     LANG_COMMAND_FACTION_NOTFOUND         = 307,
     LANG_COMMAND_FACTION_UNKNOWN          = 308,
-    LANG_COMMAND_FACTION_INVPARAM         = 309,
+    LANG_COMMAND_INVALID_PARAM            = 309,
     LANG_COMMAND_FACTION_DELTA            = 310,
     LANG_FACTION_LIST                     = 311,
     LANG_FACTION_VISIBLE                  = 312,
@@ -718,30 +718,6 @@ enum TrinityStrings
 
     LANG_CHANNEL_CITY                     = 819,
 
-    LANG_NPCINFO_GOSSIP                   = 820,
-    LANG_NPCINFO_QUESTGIVER               = 821,
-    LANG_NPCINFO_TRAINER_CLASS            = 822,
-    LANG_NPCINFO_TRAINER_PROFESSION       = 823,
-    LANG_NPCINFO_VENDOR_AMMO              = 824,
-    LANG_NPCINFO_VENDOR_FOOD              = 825,
-    LANG_NPCINFO_VENDOR_POISON            = 826,
-    LANG_NPCINFO_VENDOR_REAGENT           = 827,
-    LANG_NPCINFO_REPAIR                   = 828,
-    LANG_NPCINFO_FLIGHTMASTER             = 829,
-    LANG_NPCINFO_SPIRITHEALER             = 830,
-    LANG_NPCINFO_SPIRITGUIDE              = 831,
-    LANG_NPCINFO_INNKEEPER                = 832,
-    LANG_NPCINFO_BANKER                   = 833,
-    LANG_NPCINFO_PETITIONER               = 834,
-    LANG_NPCINFO_TABARDDESIGNER           = 835,
-    LANG_NPCINFO_BATTLEMASTER             = 836,
-    LANG_NPCINFO_AUCTIONEER               = 837,
-    LANG_NPCINFO_STABLEMASTER             = 838,
-    LANG_NPCINFO_GUILD_BANKER             = 839,
-    LANG_NPCINFO_SPELLCLICK               = 840,
-    LANG_NPCINFO_MAILBOX                  = 841,
-    LANG_NPCINFO_PLAYER_VEHICLE           = 842,
-
     // Pinfo commands
     LANG_PINFO_PLAYER                     = 453,
     LANG_PINFO_GM_ACTIVE                  = 548,
@@ -1064,7 +1040,7 @@ enum TrinityStrings
     LANG_SPAWNINFO_COMPATIBILITY_MODE     = 5071,
     LANG_SPAWNINFO_GUIDINFO               = 5072,
     LANG_SPAWNINFO_SPAWNID_LOCATION       = 5073,
-    LANG_SPAWNINFO_DISTANCEFROMPLAYER     = 5074,
+    LANG_SPAWNINFO_ROTATION               = 5074,
     LANG_SPAWNGROUP_BADGROUP              = 5075,
     LANG_SPAWNGROUP_SPAWNCOUNT            = 5076,
     LANG_LIST_RESPAWNS_RANGE              = 5077,

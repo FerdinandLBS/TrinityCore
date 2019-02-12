@@ -1,5 +1,5 @@
-ï»¿/*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+/*
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -100,7 +100,7 @@ void BuildSpecailTeleport(Player* player, Item* item, uint32 sender)
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
 
-    AddGossipItemFor(player, 4, "é»‘çŸ³å¡” 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+    AddGossipItemFor(player, 4, "ºÚÊ¯Ëþ 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -109,25 +109,25 @@ void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 4, "æ€’ç„°è£‚è°· 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
-    AddGossipItemFor(player, 4, "æ­»äº¡çŸ¿äº• 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
-    AddGossipItemFor(player, 4, "å“€åšŽæ´žç©´ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
-    AddGossipItemFor(player, 4, "å½±ç‰™åŸŽå ¡ 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
-    AddGossipItemFor(player, 4, "é»‘æš—æ·±æ¸Š 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
-    AddGossipItemFor(player, 4, "æš´é£ŽåŸŽç›‘ç‹± 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
-    AddGossipItemFor(player, 4, "è¯ºèŽ«ç‘žæ ¹ 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
-    AddGossipItemFor(player, 4, "è¡€è‰²ä¿®é“é™¢ 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
-    AddGossipItemFor(player, 4, "å‰ƒåˆ€æ²¼æ³½ 30 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
-    AddGossipItemFor(player, 4, "å‰ƒåˆ€é«˜åœ° 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
-    AddGossipItemFor(player, 4, "å¥¥è¾¾æ›¼ 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
-    AddGossipItemFor(player, 4, "çŽ›æ‹‰é¡¿ 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
-    AddGossipItemFor(player, 4, "åŽ„è¿ä¹‹æ§Œ 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
-    AddGossipItemFor(player, 4, "é€šçµå­¦é™¢ 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
-    AddGossipItemFor(player, 4, "æ–¯å¦ç´¢å§† 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
-    AddGossipItemFor(player, 4, "ç¥–å°”æ³•æ‹‰å…‹ 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
-    AddGossipItemFor(player, 4, "é»‘çŸ³æ·±æ¸Š 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
-    AddGossipItemFor(player, 4, "æ²‰æ²¡çš„ç¥žåº™ 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
-    AddGossipItemFor(player, 4, "é»‘çŸ³å¡” 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
+    AddGossipItemFor(player, 4, "Å­ÑæÁÑ¹È 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
+    AddGossipItemFor(player, 4, "ËÀÍö¿ó¾® 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
+    AddGossipItemFor(player, 4, "°§º¿¶´Ñ¨ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
+    AddGossipItemFor(player, 4, "Ó°ÑÀ³Ç±¤ 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
+    AddGossipItemFor(player, 4, "ºÚ°µÉîÔ¨ 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
+    AddGossipItemFor(player, 4, "±©·ç³Ç¼àÓü 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
+    AddGossipItemFor(player, 4, "ÅµÄªÈð¸ù 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
+    AddGossipItemFor(player, 4, "ÑªÉ«ÐÞµÀÔº 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
+    AddGossipItemFor(player, 4, "Ìêµ¶ÕÓÔó 30 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
+    AddGossipItemFor(player, 4, "Ìêµ¶¸ßµØ 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
+    AddGossipItemFor(player, 4, "°Â´ïÂü 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
+    AddGossipItemFor(player, 4, "ÂêÀ­¶Ù 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
+    AddGossipItemFor(player, 4, "¶òÔËÖ®é³ 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
+    AddGossipItemFor(player, 4, "Í¨ÁéÑ§Ôº 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
+    AddGossipItemFor(player, 4, "Ë¹Ì¹Ë÷Ä· 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
+    AddGossipItemFor(player, 4, "×æ¶û·¨À­¿Ë 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
+    AddGossipItemFor(player, 4, "ºÚÊ¯ÉîÔ¨ 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
+    AddGossipItemFor(player, 4, "³ÁÃ»µÄÉñÃí 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
+    AddGossipItemFor(player, 4, "ºÚÊ¯Ëþ 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -144,7 +144,7 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 3: // DNSS
         player->TeleportTo(1, 9961, 2055, 1329, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 4: //åŸƒç´¢è¾¾
+    case GOSSIP_ACTION_INFO_DEF + 4: //°£Ë÷´ï
         player->TeleportTo(530, -3998.3, -11864.1, 1, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 5: //agrm
@@ -156,10 +156,10 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 7: // UnderCity
         player->TeleportTo(0, 1909, 235, 53, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 8: //é“¶æœˆåŸŽ
+    case GOSSIP_ACTION_INFO_DEF + 8: //ÒøÔÂ³Ç
         player->TeleportTo(530, 9930.45, -7129.1, 48, 6);  
         break;
-    case GOSSIP_ACTION_INFO_DEF + 9: // æ£˜é½¿åŸŽ
+    case GOSSIP_ACTION_INFO_DEF + 9: // ¼¬³Ý³Ç
         player->TeleportTo(1, -977, -3788, 6, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 10:
@@ -168,78 +168,78 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 11:
         player->TeleportTo(1, -7156.56, -3825.1, 8.7, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF+12: //æ²™å¡”æ–¯
+    case GOSSIP_ACTION_INFO_DEF+12: //É³ËþË¹
         player->TeleportTo(571, 5797, 795, 664, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 13: // è¾¾æ‹‰ç„¶
+    case GOSSIP_ACTION_INFO_DEF + 13: // ´ïÀ­È»
         player->TeleportTo(571, 5797, 795, 664, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 14: // GMå²› 
+    case GOSSIP_ACTION_INFO_DEF + 14: // GMµº 
         player->TeleportTo(1, 16222.1, 16252.1, 12.5872, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 15: // 5äººæœ¬
+    case GOSSIP_ACTION_INFO_DEF + 15: // 5ÈË±¾
         CloseGossipMenuFor(player);
         BuildDungeonTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 16: // å›¢é˜Ÿæœ¬
+    case GOSSIP_ACTION_INFO_DEF + 16: // ÍÅ¶Ó±¾
         player->TeleportTo(571, 5797, 795, 664, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 51: // æ€’ç„°è£‚è°·
+    case GOSSIP_ACTION_INFO_DEF + 51: // Å­ÑæÁÑ¹È
         player->TeleportTo(389, 3.8, -14.8, -17, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 52: // çŸ¿äº•
+    case GOSSIP_ACTION_INFO_DEF + 52: // ¿ó¾®
         player->TeleportTo(36, -16, -383, 62, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 53: // å“€åšŽ
+    case GOSSIP_ACTION_INFO_DEF + 53: // °§º¿
         //player->TeleportTo(35, -0.76, 43.14, -25.16, 6);
         player->TeleportTo(43, -163.49f, 132.89f, -73.66, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 54: // å½±ç‰™
+    case GOSSIP_ACTION_INFO_DEF + 54: // Ó°ÑÀ
         player->TeleportTo(33, -229.1f, 2109.17f, 77, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 55: // æ·±æ¸Š
+    case GOSSIP_ACTION_INFO_DEF + 55: // ÉîÔ¨
         player->TeleportTo(48, -151.88f, 106.95f, -39.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 56: // ç›‘ç‹±
+    case GOSSIP_ACTION_INFO_DEF + 56: // ¼àÓü
         player->TeleportTo(34, 54.2f, 0.28f, -18, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 57: // è¯ºèŽ«ç‘žæ ¹
+    case GOSSIP_ACTION_INFO_DEF + 57: // ÅµÄªÈð¸ù
         player->TeleportTo(90, -327.5f, -4.7f, -152.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 58: // è¡€è‰²
+    case GOSSIP_ACTION_INFO_DEF + 58: // ÑªÉ«
         player->TeleportTo(0, 2894.34f, -809.55f, 160.33f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 59: // å‰ƒåˆ€æ²¼æ³½
+    case GOSSIP_ACTION_INFO_DEF + 59: // Ìêµ¶ÕÓÔó
         player->TeleportTo(47, 1943, 1544.63f, 82, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 60: // çŽ›æ‹‰é¡¿
+    case GOSSIP_ACTION_INFO_DEF + 60: // ÂêÀ­¶Ù
         player->TeleportTo(349, 1019.69f, -458.3f, -43, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 61: // å¥¥è¾¾æ›¼
+    case GOSSIP_ACTION_INFO_DEF + 61: // °Â´ïÂü
         player->TeleportTo(70, -226.8, 49.1f, -45.9f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 62: // åŽ„è¿
+    case GOSSIP_ACTION_INFO_DEF + 62: // ¶òÔË
         player->TeleportTo(429, -201.11f, -328.66f, -2.7f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 63: // é€šçµå­¦é™¢
+    case GOSSIP_ACTION_INFO_DEF + 63: // Í¨ÁéÑ§Ôº
         player->TeleportTo(289, 196.39f, 127, 135, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // å‰ƒåˆ€é«˜åœ°
+    case GOSSIP_ACTION_INFO_DEF + 64: // Ìêµ¶¸ßµØ
         player->TeleportTo(129, 2592.55f, 1107.5f, 51.5f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 65: // æ–¯å¦ç´¢å§†
+    case GOSSIP_ACTION_INFO_DEF + 65: // Ë¹Ì¹Ë÷Ä·
         player->TeleportTo(329, 3394.13f, -3380.16f, 143.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 66: // ç¥–å°”æ³•æ‹‰å…‹
+    case GOSSIP_ACTION_INFO_DEF + 66: // ×æ¶û·¨À­¿Ë
         player->TeleportTo(209, 1213.52f, 841.59f, 9, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 67: // é»‘çŸ³æ·±æ¸Š
+    case GOSSIP_ACTION_INFO_DEF + 67: // ºÚÊ¯ÉîÔ¨
         player->TeleportTo(230, 458.3f, 26.5f, -70.64f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 68: // æ²‰æ²¡çš„ç¥žåº™
+    case GOSSIP_ACTION_INFO_DEF + 68: // ³ÁÃ»µÄÉñÃí
         player->TeleportTo(109, -319.23f, 99.9f, -131.85f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 69: // é»‘çŸ³å¡”
+    case GOSSIP_ACTION_INFO_DEF + 69: // ºÚÊ¯Ëþ
         player->TeleportTo(229, 78.5f,-225.0f, 50.0f, 6);
         break;
         /*
@@ -278,9 +278,9 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
     std::string code = "";
 
     recvData >> guid >> menuId >> gossipListId;
-    //è‡ªå®šä¹‰ä»£ç ---å¼€å§‹
+    //×Ô¶¨Òå´úÂë---¿ªÊ¼
     Item *pItem = _player->GetItemByGuid(guid);
-    //å¦‚æžœitemæ˜¯ç‚‰çŸ³,åˆ™return
+    //Èç¹ûitemÊÇÂ¯Ê¯,Ôòreturn
     if (pItem)
     {
         if (pItem->GetEntry() == 60000)
@@ -289,7 +289,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
             return;
         }
     }
-    //è‡ªå®šä¹‰ä»£ç ---ç»“æŸ
+    //×Ô¶¨Òå´úÂë---½áÊø
     if (!_player->PlayerTalkClass->GetGossipMenu().GetItem(gossipListId))
     {
         recvData.rfinish();
@@ -1063,29 +1063,6 @@ void WorldSession::HandleNextCinematicCamera(WorldPacket& /*recvData*/)
 {
     // Sent by client when cinematic actually begun. So we begin the server side process
     GetPlayer()->GetCinematicMgr()->BeginCinematic();
-}
-
-void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recvData)
-{
-    /*  WorldSession::Update(getMSTime());*/
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_MOVE_TIME_SKIPPED");
-
-    ObjectGuid guid;
-    recvData >> guid.ReadAsPacked();
-    recvData.read_skip<uint32>();
-    /*
-        uint64 guid;
-        uint32 time_skipped;
-        recvData >> guid;
-        recvData >> time_skipped;
-        TC_LOG_DEBUG("network", "WORLD: CMSG_MOVE_TIME_SKIPPED");
-
-        //// @todo
-        must be need use in Trinity
-        We substract server Lags to move time (AntiLags)
-        for exmaple
-        GetPlayer()->ModifyLastMoveTime(-int32(time_skipped));
-    */
 }
 
 void WorldSession::HandleFeatherFallAck(WorldPacket& recvData)

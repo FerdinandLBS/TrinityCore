@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -809,7 +809,7 @@ SpellInfo::SpellInfo(SpellEntry const* spellEntry)
     BaseLevel = spellEntry->baseLevel;
     SpellLevel = spellEntry->spellLevel;
     DurationEntry = spellEntry->DurationIndex ? sSpellDurationStore.LookupEntry(spellEntry->DurationIndex) : nullptr;
-    PowerType = spellEntry->powerType;
+    PowerType = static_cast<Powers>(spellEntry->powerType);
     ManaCost = spellEntry->manaCost;
     ManaCostPerlevel = spellEntry->manaCostPerlevel;
     ManaPerSecond = spellEntry->manaPerSecond;
@@ -3162,7 +3162,7 @@ int32 SpellInfo::CalcPowerCost(WorldObject const* caster, SpellSchoolMask school
             return unitCaster->GetHealth();
         // Else drain all power
         if (PowerType < MAX_POWERS)
-            return unitCaster->GetPower(Powers(PowerType));
+            return unitCaster->GetPower(PowerType);
         TC_LOG_ERROR("spells", "SpellInfo::CalcPowerCost: Unknown power type '%d' in spell %d", PowerType, Id);
         return 0;
     }
@@ -3185,7 +3185,7 @@ int32 SpellInfo::CalcPowerCost(WorldObject const* caster, SpellSchoolMask school
             case POWER_FOCUS:
             case POWER_ENERGY:
             case POWER_HAPPINESS:
-                powerCost += int32(CalculatePct(unitCaster->GetMaxPower(Powers(PowerType)), ManaCostPercentage));
+                powerCost += int32(CalculatePct(unitCaster->GetMaxPower(PowerType), ManaCostPercentage));
                 break;
             case POWER_RUNE:
             case POWER_RUNIC_POWER:
@@ -3434,9 +3434,6 @@ bool _isPositiveEffectImpl(SpellInfo const* spellInfo, uint8 effIndex, std::unor
             // Arcane Missiles
             if (spellInfo->SpellFamilyFlags[0] == 0x00000800)
                 return false;
-            // Mage Slow
-            if (spellInfo->Id == 31589)
-                return false;
             break;
         case SPELLFAMILY_WARRIOR:
             // Slam, Execute
@@ -3635,12 +3632,14 @@ bool _isPositiveEffectImpl(SpellInfo const* spellInfo, uint8 effIndex, std::unor
                 break;
             case SPELL_AURA_MOD_ATTACKSPEED:            // some buffs have negative bp, check both target and bp
             case SPELL_AURA_MOD_MELEE_HASTE:
+            case SPELL_AURA_HASTE_RANGED:
             case SPELL_AURA_MOD_RESISTANCE_PCT:
             case SPELL_AURA_MOD_RATING:
             case SPELL_AURA_MOD_ATTACK_POWER:
             case SPELL_AURA_MOD_RANGED_ATTACK_POWER:
             case SPELL_AURA_MOD_DAMAGE_PERCENT_DONE:
-                if (!_isPositiveTarget(spellInfo, effIndex) && bp < 0)
+            case SPELL_AURA_MOD_SPEED_SLOW_ALL:
+                if (!_isPositiveTarget(spellInfo, effIndex) || bp < 0)
                     return false;
                 break;
             case SPELL_AURA_MOD_DAMAGE_TAKEN:           // dependent from basepoint sign (positive -> negative)

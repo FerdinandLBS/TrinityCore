@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -72,6 +72,12 @@ namespace advstd
 
     // C++17 std::tuple_size_v
     forward_1v(tuple_size, size_t);
+
+    // C++17 std::is_enum_v
+    forward_1v(is_enum, bool);
+
+    // C++17 std::is_arithmetic_v
+    forward_1v(is_arithmetic, bool);
 
 #undef forward_1v
 #undef forward_2v

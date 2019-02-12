@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -601,7 +601,7 @@ void BattlefieldWG::OnBattleStart()
     for (WintergraspWorkshop* workshop : Workshops)
         workshop->UpdateGraveyardAndWorkshop();
 
-    for (uint8 team = 0; team < BG_TEAMS_COUNT; ++team)
+    for (uint8 team = 0; team < PVP_TEAMS_COUNT; ++team)
     {
         for (auto itr = m_players[team].begin(); itr != m_players[team].end(); ++itr)
         {
@@ -718,7 +718,7 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
         if (Player* player = ObjectAccessor::FindPlayer(*itr))
             player->CastSpell(player, SPELL_DEFEAT_REWARD, true);
 
-    for (uint8 team = 0; team < BG_TEAMS_COUNT; ++team)
+    for (uint8 team = 0; team < PVP_TEAMS_COUNT; ++team)
     {
         for (auto itr = m_PlayersInWar[team].begin(); itr != m_PlayersInWar[team].end(); ++itr)
             if (Player* player = ObjectAccessor::FindPlayer(*itr))
@@ -736,7 +736,7 @@ void BattlefieldWG::OnBattleEnd(bool endByTimer)
 
     if (!endByTimer)
     {
-        for (uint8 team = 0; team < BG_TEAMS_COUNT; ++team)
+        for (uint8 team = 0; team < PVP_TEAMS_COUNT; ++team)
         {
             for (auto itr = m_players[team].begin(); itr != m_players[team].end(); ++itr)
             {
@@ -973,7 +973,7 @@ void BattlefieldWG::HandleKill(Player* killer, Unit* victim)
 
 bool BattlefieldWG::FindAndRemoveVehicleFromList(Unit* vehicle)
 {
-    for (uint32 team = 0; team < BG_TEAMS_COUNT; ++team)
+    for (uint32 team = 0; team < PVP_TEAMS_COUNT; ++team)
     {
         auto itr = m_vehicles[team].find(vehicle->GetGUID());
         if (itr != m_vehicles[team].end())
@@ -1190,7 +1190,7 @@ void BattlefieldWG::SendInitWorldStatesTo(Player* player)
 
 void BattlefieldWG::SendInitWorldStatesToAll()
 {
-    for (uint8 team = 0; team < BG_TEAMS_COUNT; ++team)
+    for (uint8 team = 0; team < PVP_TEAMS_COUNT; ++team)
         for (auto itr = m_players[team].begin(); itr != m_players[team].end(); ++itr)
             if (Player* player = ObjectAccessor::FindPlayer(*itr))
                 SendInitWorldStatesTo(player);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -284,6 +284,7 @@ struct npc_sanctum_sentry : public ScriptedAI
 
     void Reset() override
     {
+        _events.Reset();
         DoCastSelf(SPELL_STRENGHT_OF_THE_PACK, true);
         me->SetWalk(true);
     }

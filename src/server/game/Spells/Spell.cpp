@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -2763,14 +2763,7 @@ void Spell::DoSpellEffectHit(Unit* unit, uint8 effIndex, TargetInfo& hitInfo)
             bool refresh = false;
 
             // delayed spells with multiple targets need to create a new aura object, otherwise we'll access a deleted aura
-            if (m_spellInfo->Speed > 0.0f && !m_spellInfo->IsChanneled())
-            {
-                _spellAura = nullptr;
-                if (Aura* aura = unit->GetAura(m_spellInfo->Id, caster->GetGUID(), m_CastItem ? m_CastItem->GetGUID() : ObjectGuid::Empty, aura_effmask))
-                    _spellAura = aura->ToUnitAura();
-            }
-
-            if (!_spellAura)
+            if (!_spellAura || (m_spellInfo->Speed > 0.0f && !m_spellInfo->IsChanneled()))
             {
                 bool const resetPeriodicTimer = !(_triggeredCastFlags & TRIGGERED_DONT_RESET_PERIODIC_TIMER);
                 uint8 const allAuraEffectMask = Aura::BuildEffectMaskForOwner(hitInfo.AuraSpellInfo, MAX_EFFECT_MASK, unit);
@@ -2782,7 +2775,7 @@ void Spell::DoSpellEffectHit(Unit* unit, uint8 effIndex, TargetInfo& hitInfo)
                 createInfo
                     .SetCasterGUID(caster->GetGUID())
                     .SetBaseAmount(bp)
-                    .SetCastItem(m_CastItem)
+                    .SetCastItemGUID(m_CastItem ? m_CastItem->GetGUID() : ObjectGuid::Empty)
                     .SetPeriodicReset(resetPeriodicTimer)
                     .SetOwnerEffectMask(aura_effmask)
                     .IsRefresh = &refresh;
@@ -3646,7 +3639,13 @@ void Spell::_handle_finish_phase()
 
         // Real add combo points from effects
         if (m_comboTarget && m_comboPointGain)
+        {
+            // remove Premed-like effects unless they were caused by ourselves
+            // (this Aura removes the already-added CP when it expires from duration - now that we've added CP, this shouldn't happen anymore!)
+            if (!m_spellInfo->HasAura(SPELL_AURA_RETAIN_COMBO_POINTS))
+                unitCaster->RemoveAurasByType(SPELL_AURA_RETAIN_COMBO_POINTS);
             unitCaster->AddComboPoints(m_comboTarget, m_comboPointGain);
+        }
 
         if (unitCaster->m_extraAttacks && m_spellInfo->HasEffect(SPELL_EFFECT_ADD_EXTRA_ATTACKS))
         {
@@ -4124,7 +4123,7 @@ void Spell::SendSpellStart()
     m_targets.Write(castData.Target);
 
     if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
-        castData.RemainingPower = ASSERT_NOTNULL(m_caster->ToUnit())->GetPower(static_cast<Powers>(m_spellInfo->PowerType));
+        castData.RemainingPower = ASSERT_NOTNULL(m_caster->ToUnit())->GetPower(m_spellInfo->PowerType);
 
     if (castFlags & CAST_FLAG_AMMO)
     {
@@ -4200,7 +4199,7 @@ void Spell::SendSpellGo()
     m_targets.Write(castData.Target);
 
     if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
-        castData.RemainingPower = ASSERT_NOTNULL(m_caster->ToUnit())->GetPower(static_cast<Powers>(m_spellInfo->PowerType));
+        castData.RemainingPower = ASSERT_NOTNULL(m_caster->ToUnit())->GetPower(m_spellInfo->PowerType);
 
     if (castFlags & CAST_FLAG_RUNE_LIST)                   // rune cooldowns list
     {
@@ -4293,6 +4292,8 @@ void Spell::UpdateSpellCastDataAmmo(WorldPackets::Spells::SpellAmmo& ammo)
     }
     else if (m_caster->GetTypeId() == TYPEID_UNIT)
     {
+        uint32 nonRangedAmmoDisplayID = 0;
+        uint32 nonRangedAmmoInventoryType = 0;
         for (uint8 i = BASE_ATTACK; i < MAX_ATTACK; ++i)
         {
             if (uint32 item_id = m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i))
@@ -4316,6 +4317,10 @@ void Spell::UpdateSpellCastDataAmmo(WorldPackets::Spells::SpellAmmo& ammo)
                                 ammoDisplayID = 5998;       // is this need fixing?
                                 ammoInventoryType = INVTYPE_AMMO;
                                 break;
+                            default:
+                                nonRangedAmmoDisplayID = itemEntry->DisplayId;
+                                nonRangedAmmoInventoryType = itemEntry->InventoryType;
+                                break;
                         }
 
                         if (ammoDisplayID)
@@ -4323,6 +4328,12 @@ void Spell::UpdateSpellCastDataAmmo(WorldPackets::Spells::SpellAmmo& ammo)
                     }
                 }
             }
+        }
+
+        if (!ammoDisplayID && !ammoInventoryType)
+        {
+            ammoDisplayID = nonRangedAmmoDisplayID;
+            ammoInventoryType = nonRangedAmmoInventoryType;
         }
     }
 
@@ -6397,7 +6408,7 @@ SpellCastResult Spell::CheckPower() const
     }
 
     // Check power amount
-    Powers powerType = Powers(m_spellInfo->PowerType);
+    Powers powerType = m_spellInfo->PowerType;
     if (int32(unitCaster->GetPower(powerType)) < m_powerCost)
         return SPELL_FAILED_NO_POWER;
     else
@@ -7956,8 +7967,7 @@ void Spell::TriggerGlobalCooldown()
     if (!CanHaveGlobalCooldown(m_caster))
         return;
 
-    int32 gcd = m_spellInfo->StartRecoveryTime;
-    if (!gcd)
+    if (!m_spellInfo->StartRecoveryCategory)
         return;
 
     if (m_caster->GetTypeId() == TYPEID_PLAYER)
@@ -7965,20 +7975,23 @@ void Spell::TriggerGlobalCooldown()
             return;
 
     // Global cooldown can't leave range 1..1.5 secs
-    // There are some spells (mostly not cast directly by player) that have < 1 sec and > 1.5 sec global cooldowns
-    // but as tests show are not affected by any spell mods.
-    if (m_spellInfo->StartRecoveryTime >= MIN_GCD && m_spellInfo->StartRecoveryTime <= MAX_GCD)
-    {
-        // gcd modifier auras are applied only to own spells and only players have such mods
-        if (Player* modOwner = m_caster->GetSpellModOwner())
-            modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_GLOBAL_COOLDOWN, gcd, this);
+    int32 gcd = m_spellInfo->StartRecoveryTime;
 
-        // Apply haste rating
+    // gcd modifier auras are applied only to own spells and only players have such mods
+    if (Player* modOwner = m_caster->GetSpellModOwner())
+        modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_GLOBAL_COOLDOWN, gcd, this);
+
+    // Apply haste rating
+    if (m_spellInfo->StartRecoveryCategory == 133 && m_spellInfo->StartRecoveryTime == 1500 &&
+        m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE && m_spellInfo->DmgClass != SPELL_DAMAGE_CLASS_RANGED &&
+        !m_spellInfo->HasAttribute(SPELL_ATTR0_REQ_AMMO) && !m_spellInfo->HasAttribute(SPELL_ATTR0_ABILITY))
+    {
         gcd = int32(float(gcd) * m_caster->GetFloatValue(UNIT_MOD_CAST_SPEED));
         RoundToInterval<int32>(gcd, MIN_GCD, MAX_GCD);
     }
 
-    m_caster->ToUnit()->GetSpellHistory()->AddGlobalCooldown(m_spellInfo, gcd);
+    if (gcd)
+        m_caster->ToUnit()->GetSpellHistory()->AddGlobalCooldown(m_spellInfo, gcd);
 }
 
 void Spell::CancelGlobalCooldown()
@@ -7994,6 +8007,15 @@ void Spell::CancelGlobalCooldown()
         return;
 
     m_caster->ToUnit()->GetSpellHistory()->CancelGlobalCooldown(m_spellInfo);
+}
+
+std::string Spell::GetDebugInfo() const
+{
+    std::stringstream sstr;
+    sstr << std::boolalpha
+        << "Id: " << GetSpellInfo()->Id << " OriginalCaster: " << m_originalCasterGUID.ToString()
+        << " State: " << getState();
+    return sstr.str();
 }
 
 namespace Trinity

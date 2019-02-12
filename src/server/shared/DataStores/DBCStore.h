@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -45,7 +45,6 @@ class TC_SHARED_API DBCStorageBase
         uint32 _fieldCount;
         char const* _fileFormat;
         char* _dataTable;
-        char* _dataTableEx;
         std::vector<char*> _stringPool;
         uint32 _indexTableSize;
 };

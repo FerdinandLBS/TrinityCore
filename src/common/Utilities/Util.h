@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -24,6 +24,7 @@
 
 #include <string>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 class TC_COMMON_API Tokenizer
@@ -299,6 +300,11 @@ TC_COMMON_API void HexStrToByteArray(std::string const& str, uint8* out, bool re
 TC_COMMON_API bool StringToBool(std::string const& str);
 
 TC_COMMON_API bool StringContainsStringI(std::string const& haystack, std::string const& needle);
+template <typename T>
+inline bool ValueContainsStringI(std::pair<T, std::string> const& haystack, std::string const& needle)
+{
+    return StringContainsStringI(haystack.second, needle);
+}
 
 // simple class for not-modifyable list
 template <typename T>
@@ -497,7 +503,7 @@ bool CompareValues(ComparisionType type, T val1, T val2)
 }
 
 template<typename E>
-typename std::underlying_type<E>::type AsUnderlyingType(E enumValue)
+constexpr typename std::underlying_type<E>::type AsUnderlyingType(E enumValue)
 {
     static_assert(std::is_enum<E>::value, "AsUnderlyingType can only be used with enums");
     return static_cast<typename std::underlying_type<E>::type>(enumValue);

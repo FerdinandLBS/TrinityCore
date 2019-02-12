@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -18,14 +18,13 @@
 #include "DBCStore.h"
 #include "DBCDatabaseLoader.h"
 
-DBCStorageBase::DBCStorageBase(char const* fmt) : _fieldCount(0), _fileFormat(fmt), _dataTable(nullptr), _dataTableEx(nullptr), _indexTableSize(0)
+DBCStorageBase::DBCStorageBase(char const* fmt) : _fieldCount(0), _fileFormat(fmt), _dataTable(nullptr), _indexTableSize(0)
 {
 }
 
 DBCStorageBase::~DBCStorageBase()
 {
     delete[] _dataTable;
-    delete[] _dataTableEx;
     for (char* strings : _stringPool)
         delete[] strings;
 }
@@ -72,5 +71,5 @@ bool DBCStorageBase::LoadStringsFrom(char const* path, char** indexTable)
 
 void DBCStorageBase::LoadFromDB(char const* table, char const* format, char const* index, char**& indexTable)
 {
-    _dataTableEx = DBCDatabaseLoader(table, format, index, _fileFormat, _stringPool).Load(_indexTableSize, indexTable);
+    _stringPool.push_back(DBCDatabaseLoader(table, format, index, _fileFormat, _stringPool).Load(_indexTableSize, indexTable));
 }
