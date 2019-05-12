@@ -297,7 +297,7 @@ enum ItemClass : uint8
     ITEM_CLASS_CONSUMABLE                       = 0,
     ITEM_CLASS_CONTAINER                        = 1,
     ITEM_CLASS_WEAPON                           = 2,
-    ITEM_CLASS_GEM                              = 3,
+    ITEM_CLASS_GEM                              = 3, // ??
     ITEM_CLASS_ARMOR                            = 4,
     ITEM_CLASS_REAGENT                          = 5,
     ITEM_CLASS_PROJECTILE                       = 6,

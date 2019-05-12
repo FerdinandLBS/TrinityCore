@@ -289,6 +289,11 @@ void Creature::RemoveFromWorld()
 {
     if (IsInWorld())
     {
+        if (GetEntry() >= 45000) {
+            Unit* owner = GetOwner();
+            owner->_popAssistance(this);
+        }
+
         if (GetZoneScript())
             GetZoneScript()->OnCreatureRemove(this);
 
@@ -2099,6 +2104,11 @@ void Creature::DespawnOrUnsummon(uint32 msTimeToDespawn /*= 0*/, Seconds forceRe
         summon->UnSummon(msTimeToDespawn);
     else
         ForcedDespawn(msTimeToDespawn, forceRespawnTimer);
+
+    if (GetEntry() >= 45000) {
+        Unit* owner = GetOwner();
+        owner->_popAssistance(this);
+    }
 }
 
 void Creature::LoadTemplateImmunities()

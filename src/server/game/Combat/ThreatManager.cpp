@@ -610,6 +610,11 @@ ThreatReference const* ThreatManager::ReselectVictim()
             modOwner->ApplySpellMod(spell->Id, SPELLMOD_THREAT, threat);
     }
 
+    // Fool handler of Assistants
+    if (victim->HasSpell(86000)) {
+        return threat * 21.0f;
+    }
+
     // modifiers by effect school
     ThreatManager const& victimMgr = victim->GetThreatManager();
     SpellSchoolMask const mask = spell ? spell->GetSchoolMask() : SPELL_SCHOOL_MASK_NORMAL;

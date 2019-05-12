@@ -787,6 +787,31 @@ bool Pet::CreateBaseAtTamed(CreatureTemplate const* cinfo, Map* map, uint32 phas
 
     return true;
 }
+float getSpecialFollowAngle(Creature* me) {
+    /*
+    85990: sword
+    86001: tank
+    85980: healer
+    85970: magic
+    85960: assistance
+    */
+    uint32 index = 0;
+    for (uint32 i = 0; i < MAX_CREATURE_SPELLS; i++) {
+        switch (me->m_spells[i]) {
+        case 85990:
+            return 0.0f;
+        case 86001:
+            return static_cast<float>(1.6f*M_PI);
+        case 85980:
+            return static_cast<float>(0.8f*M_PI);
+        case 85970:
+            return static_cast<float>(0.4f*M_PI);
+        case 85960:
+            return static_cast<float>(1.2f*M_PI);
+        }
+    }
+    return static_cast<float>(0.6f*M_PI);
+}
 
 /// @todo Move stat mods code to pet passive auras
 bool Guardian::InitStatsForLevel(uint8 petlevel)
@@ -1038,6 +1063,49 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     SetBonusDamage(int32(GetOwner()->GetTotalAttackPowerValue(BASE_ATTACK) * 0.006f));
                     SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(petlevel - 30 - (petlevel / 4)));
                     SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(petlevel - 30 + (petlevel / 4)));
+                }
+                default:
+                {
+                    if (GetEntry() < 44000)
+                        break;
+
+                    Unit* owner = GetOwner();
+                    if (!owner->IsCharmedOwnedByPlayerOrPlayer()) {
+                        break;
+                    }
+                    float stat;
+                    float str = owner->GetStat(STAT_STRENGTH);
+                    float intl = owner->GetStat(STAT_INTELLECT);
+                    float agi = owner->GetStat(STAT_AGILITY);
+                    float sta = owner->GetStat(STAT_STAMINA);
+                    float armor;
+
+                    if (str > intl)
+                        if (str > agi) stat = str; else stat = agi;
+                    else
+                        if (intl > agi) stat = intl; else stat = agi;
+                    armor = stat * 3.0f + sta * 2;
+                    if (HasSpell(86000)) {
+                        armor *= 2;
+                    }
+                    SetCreateHealth(owner->GetMaxHealth() - sta*10);
+                    
+                    SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, armor); 
+                    SetStatFlatModifier(UNIT_MOD_STAT_STAMINA, BASE_VALUE, sta);
+                    SetStatFlatModifier(UNIT_MOD_STAT_STRENGTH, BASE_VALUE, stat);
+                    SetStatFlatModifier(UNIT_MOD_STAT_AGILITY, BASE_VALUE, stat);
+                    SetStatFlatModifier(UNIT_MOD_STAT_INTELLECT, BASE_VALUE, stat);
+                    SetStatFlatModifier(UNIT_MOD_STAT_SPIRIT, BASE_VALUE, stat);
+                    SetFollowAngle(getSpecialFollowAngle(this));
+                    if (GetEntry() >= 45000) {
+                        SetBonusDamage(int32(stat));
+                        owner->_pushAssistance(this);
+                    } 
+                    else
+                        SetBonusDamage(int32(stat)/2);
+
+                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(stat));
+                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(stat));
                 }
             }
             break;

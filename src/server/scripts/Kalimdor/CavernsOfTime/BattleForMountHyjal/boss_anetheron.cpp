@@ -286,7 +286,11 @@ class spell_anetheron_vampiric_aura : public SpellScriptLoader
 
                 Unit* actor = eventInfo.GetActor();
                 CastSpellExtraArgs args(aurEff);
-                args.AddSpellMod(SPELLVALUE_BASE_POINT0, damageInfo->GetDamage() * 3);
+
+                if (actor->IsCharmedOwnedByPlayerOrPlayer())
+                    args.AddSpellMod(SPELLVALUE_BASE_POINT0, damageInfo->GetDamage() / 20 + 1);
+                else
+                    args.AddSpellMod(SPELLVALUE_BASE_POINT0, damageInfo->GetDamage() * 3);
                 actor->CastSpell(actor, SPELL_VAMPIRIC_AURA_HEAL, args);
             }
 

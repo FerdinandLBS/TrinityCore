@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -100,7 +100,57 @@ void BuildSpecailTeleport(Player* player, Item* item, uint32 sender)
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
 
-    AddGossipItemFor(player, 4, "��ʯ�� 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+    AddGossipItemFor(player, 4, "黑石塔 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildRaidTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 4, "熔火之心(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 301);
+    AddGossipItemFor(player, 4, "黑翼之巢(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 302);
+    AddGossipItemFor(player, 4, "安其拉(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 303);
+    AddGossipItemFor(player, 4, "祖尔格拉布(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 304);
+    AddGossipItemFor(player, 4, "祖阿曼(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 305);
+    AddGossipItemFor(player, 4, "卡拉赞(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 306);
+    AddGossipItemFor(player, 4, "奥妮克希亚巢穴(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 307);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildNorthlandTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 13, "达拉然", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 101);
+    AddGossipItemFor(player, 9, "乌特加德堡垒", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 104);
+    AddGossipItemFor(player, 9, "魔枢", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 103);
+    AddGossipItemFor(player, 9, "龙眠神殿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 102);
+    AddGossipItemFor(player, 9, "古代王国", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 105);
+    AddGossipItemFor(player, 9, "达克萨隆要塞", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 111);
+    AddGossipItemFor(player, 9, "古达克", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 106);
+    AddGossipItemFor(player, 9, "风暴群山", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 107);
+    AddGossipItemFor(player, 9, "纳克萨玛斯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 110);
+    AddGossipItemFor(player, 9, "银色比武场", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 108);
+    AddGossipItemFor(player, 9, "冰冠堡垒", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 109);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildOutlandTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 13, "沙塔斯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 201);
+    AddGossipItemFor(player, 9, "地狱火堡垒", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 202);
+    AddGossipItemFor(player, 9, "盘牙水库", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 203);
+    AddGossipItemFor(player, 9, "奥金顿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 204);
+    AddGossipItemFor(player, 9, "风暴战舰", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 205);
+    AddGossipItemFor(player, 9, "戈鲁尔巢穴", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 206);
+    AddGossipItemFor(player, 9, "黑暗神庙", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 207);
+    AddGossipItemFor(player, 9, "时光之穴", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 208);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -109,25 +159,25 @@ void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 4, "ŭ���ѹ� 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
-    AddGossipItemFor(player, 4, "������ 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
-    AddGossipItemFor(player, 4, "������Ѩ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
-    AddGossipItemFor(player, 4, "Ӱ���Ǳ� 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
-    AddGossipItemFor(player, 4, "�ڰ���Ԩ 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
-    AddGossipItemFor(player, 4, "����Ǽ��� 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
-    AddGossipItemFor(player, 4, "ŵĪ��� 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
-    AddGossipItemFor(player, 4, "Ѫɫ�޵�Ժ 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
-    AddGossipItemFor(player, 4, "�굶���� 30 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
-    AddGossipItemFor(player, 4, "�굶�ߵ� 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
-    AddGossipItemFor(player, 4, "�´��� 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
-    AddGossipItemFor(player, 4, "������ 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
-    AddGossipItemFor(player, 4, "����֮� 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
-    AddGossipItemFor(player, 4, "ͨ��ѧԺ 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
-    AddGossipItemFor(player, 4, "˹̹��ķ 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
-    AddGossipItemFor(player, 4, "��������� 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
-    AddGossipItemFor(player, 4, "��ʯ��Ԩ 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
-    AddGossipItemFor(player, 4, "��û������ 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
-    AddGossipItemFor(player, 4, "��ʯ�� 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
+    AddGossipItemFor(player, 4, "怒焰裂谷 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
+    AddGossipItemFor(player, 4, "死亡矿井 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
+    AddGossipItemFor(player, 4, "哀嚎洞穴 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
+    AddGossipItemFor(player, 4, "影牙城堡 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
+    AddGossipItemFor(player, 4, "黑暗深渊 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
+    AddGossipItemFor(player, 4, "暴风城监狱 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
+    AddGossipItemFor(player, 4, "诺莫瑞根 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
+    AddGossipItemFor(player, 4, "剃刀沼泽 25 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
+    AddGossipItemFor(player, 4, "血色修道院 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
+    AddGossipItemFor(player, 4, "剃刀高地 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
+    AddGossipItemFor(player, 4, "奥达曼 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
+    AddGossipItemFor(player, 4, "祖尔法拉克 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
+    AddGossipItemFor(player, 4, "玛拉顿 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
+    AddGossipItemFor(player, 4, "厄运之槌 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
+    AddGossipItemFor(player, 4, "通灵学院 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
+    AddGossipItemFor(player, 4, "斯坦索姆 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
+    AddGossipItemFor(player, 4, "黑石深渊 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
+    AddGossipItemFor(player, 4, "沉没的神庙 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
+    AddGossipItemFor(player, 4, "黑石塔 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -136,30 +186,30 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
 {
     switch (action) {
     case GOSSIP_ACTION_INFO_DEF + 1: // StormWind City
-        player->TeleportTo(0, -9065, 434, 94, 6);
+        player->TeleportTo(0, -8730.59f, 722.68f, 101.7f, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 2: // TLB
-        player->TeleportTo(0, -5032, -819, 495, 6);
+        player->TeleportTo(0, -4799.36, -1107.36, 501.7, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 3: // DNSS
         player->TeleportTo(1, 9961, 2055, 1329, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 4: //������
+    case GOSSIP_ACTION_INFO_DEF + 4: // 埃索达
         player->TeleportTo(530, -3998.3, -11864.1, 1, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 5: //agrm
-        player->TeleportTo(1, 1317, -4383, 27, 6);
+    case GOSSIP_ACTION_INFO_DEF + 5: // 奥格瑞玛
+        player->TeleportTo(1, 1676.25f, -4313.45, 62.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 6: // LTY
-        player->TeleportTo(1, -1391, 140, 23, 6);
+    case GOSSIP_ACTION_INFO_DEF + 6: // 雷霆崖
+        player->TeleportTo(1, -1150.877197f, 15.459573f, 180.088318f, 1.300810f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 7: // UnderCity
-        player->TeleportTo(0, 1909, 235, 53, 6);
+    case GOSSIP_ACTION_INFO_DEF + 7: // 幽暗城
+        player->TeleportTo(0, 1596.05835f, 240.41658f, -13.89129f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 8: //���³�
+    case GOSSIP_ACTION_INFO_DEF + 8: // 银月城
         player->TeleportTo(530, 9930.45, -7129.1, 48, 6);  
         break;
-    case GOSSIP_ACTION_INFO_DEF + 9: // ���ݳ�
+    case GOSSIP_ACTION_INFO_DEF + 9: // 棘齿城
         player->TeleportTo(1, -977, -3788, 6, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 10:
@@ -168,99 +218,151 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 11:
         player->TeleportTo(1, -7156.56, -3825.1, 8.7, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF+12: //ɳ��˹
-        player->TeleportTo(571, 5797, 795, 664, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 13: // ����Ȼ
-        player->TeleportTo(571, 5797, 795, 664, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 14: // GM�� 
+    case GOSSIP_ACTION_INFO_DEF+12: //外域
+        CloseGossipMenuFor(player);
+        BuildOutlandTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 13: // 诺森德
+        CloseGossipMenuFor(player);
+        BuildNorthlandTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 14: // GM岛 
         player->TeleportTo(1, 16222.1, 16252.1, 12.5872, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 15: // 5�˱�
+    case GOSSIP_ACTION_INFO_DEF + 15: // 5人本
         CloseGossipMenuFor(player);
         BuildDungeonTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 16: // �Ŷӱ�
-        player->TeleportTo(571, 5797, 795, 664, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 51: // ŭ���ѹ�
+    case GOSSIP_ACTION_INFO_DEF + 16: // 团队本
+        CloseGossipMenuFor(player);
+        BuildRaidTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 51: // 怒焰裂谷
         player->TeleportTo(389, 3.8, -14.8, -17, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 52: // ��
+    case GOSSIP_ACTION_INFO_DEF + 52: // 矿井
         player->TeleportTo(36, -16, -383, 62, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 53: // ����
-        //player->TeleportTo(35, -0.76, 43.14, -25.16, 6);
+    case GOSSIP_ACTION_INFO_DEF + 53: // 哀嚎
         player->TeleportTo(43, -163.49f, 132.89f, -73.66, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 54: // Ӱ��
+    case GOSSIP_ACTION_INFO_DEF + 54: // 影牙
         player->TeleportTo(33, -229.1f, 2109.17f, 77, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 55: // ��Ԩ
+    case GOSSIP_ACTION_INFO_DEF + 55: // 深渊
         player->TeleportTo(48, -151.88f, 106.95f, -39.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 56: // ����
+    case GOSSIP_ACTION_INFO_DEF + 56: // 监狱
         player->TeleportTo(34, 54.2f, 0.28f, -18, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 57: // ŵĪ���
+    case GOSSIP_ACTION_INFO_DEF + 57: // 诺莫瑞根
         player->TeleportTo(90, -327.5f, -4.7f, -152.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 58: // Ѫɫ
+    case GOSSIP_ACTION_INFO_DEF + 58: // 血色
         player->TeleportTo(0, 2894.34f, -809.55f, 160.33f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 59: // �굶����
+    case GOSSIP_ACTION_INFO_DEF + 59: // 剃刀沼泽
         player->TeleportTo(47, 1943, 1544.63f, 82, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 60: // ������
+    case GOSSIP_ACTION_INFO_DEF + 60: // 玛拉顿
         player->TeleportTo(349, 1019.69f, -458.3f, -43, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 61: // �´���
+    case GOSSIP_ACTION_INFO_DEF + 61: // 奥达曼
         player->TeleportTo(70, -226.8, 49.1f, -45.9f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 62: // ����
+    case GOSSIP_ACTION_INFO_DEF + 62: // 厄运
         player->TeleportTo(429, -201.11f, -328.66f, -2.7f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 63: // ͨ��ѧԺ
+    case GOSSIP_ACTION_INFO_DEF + 63: // 通灵学院
         player->TeleportTo(289, 196.39f, 127, 135, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // �굶�ߵ�
+    case GOSSIP_ACTION_INFO_DEF + 64: // 剃刀高地
         player->TeleportTo(129, 2592.55f, 1107.5f, 51.5f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 65: // ˹̹��ķ
+    case GOSSIP_ACTION_INFO_DEF + 65: // 斯坦索姆
         player->TeleportTo(329, 3394.13f, -3380.16f, 143.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 66: // ���������
+    case GOSSIP_ACTION_INFO_DEF + 66: // 祖尔法拉克
         player->TeleportTo(209, 1213.52f, 841.59f, 9, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 67: // ��ʯ��Ԩ
+    case GOSSIP_ACTION_INFO_DEF + 67: // 黑石深渊
         player->TeleportTo(230, 458.3f, 26.5f, -70.64f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 68: // ��û������
+    case GOSSIP_ACTION_INFO_DEF + 68: // 沉没的神庙
         player->TeleportTo(109, -319.23f, 99.9f, -131.85f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 69: // ��ʯ��
+    case GOSSIP_ACTION_INFO_DEF + 69: // 黑石塔
         player->TeleportTo(229, 78.5f,-225.0f, 50.0f, 6);
         break;
+       
+    case GOSSIP_ACTION_INFO_DEF + 101: // 达拉燃
+        player->TeleportTo(571, 5797, 795, 664, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 102: // 龙眠神殿
+        player->TeleportTo(571, 3546.607178f, 273.218842f, 342.722f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 103: // 魔枢
+        player->TeleportTo(571, 3831.737061f, 6960.383789f, 104.784271f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 104: // 乌特加德堡垒
+        player->TeleportTo(571, 1260.176636f, -4843.805664f, 215.763993f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 105: // 古代王国
+        player->TeleportTo(571, 3695.932129f, 2143.285889f, 34.147270f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 106: // 古达克
+        player->TeleportTo(571, 6938.497559f, -4452.765137f, 450.868896f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 107: // 风暴群山
+        player->TeleportTo(571, 8949.208008f, -1266.415894f, 1025.499391f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 108: // 银色比武场
+        player->TeleportTo(571, 8486.941406f, 775.859863f, 558.568299f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 109: // 冰冠堡垒
+        player->TeleportTo(571, 5864.67f, 2169.83f, 636.1f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 110: // 纳克萨玛斯
+        player->TeleportTo(571, 3666.089844f, -1269.738403f, 243.508927f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 111: // 达克萨隆要塞
+        player->TeleportTo(571, 4772.635742f, -2046.703125f, 238.28464f, 0.061439f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 201: // 沙塔斯
+        player->TeleportTo(530, -1859.95f, 5438.85f, -10.3f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 202: // 地狱火
+        player->TeleportTo(530, -321.64f, 3082.49f, 32.6f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 203: // 水库
+        player->TeleportTo(530, 764.034058f, 6866.363770f, -68.277512f, 6.266417f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 204: // 奥金顿
+        player->TeleportTo(530, -3377.06f, 4954.24f, -66.5f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 205: // 风暴战舰
+        player->TeleportTo(530, 3101.006592f, 1537.525879f, 190.31f, 4.649131f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 206: // 格鲁尔
+        player->TeleportTo(565, 62.784199f, 35.462002f, -3.983500f, 1.418440f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 207: // 黑庙
+        player->TeleportTo(564, 96.45f, 1002.35f, -86.8f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 208: // 时光之穴
+        player->TeleportTo(1, -8509.349606f, -4356.310059f, -208.358994f, 6);
+        break;
+    // Raid telepot
+    case GOSSIP_ACTION_INFO_DEF + 301: // 熔火之心
+        player->TeleportTo(409, 1087.588f, -477.341f, -107.0f, 0.786652f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 305: // 祖阿曼
+        player->TeleportTo(530, 6832.783203f, -7858.009766f, 163.976166f, 4.697f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 308: // 奥妮克西娅
+        player->TeleportTo(1, -4745.300293f, -3753.068604f, 50.219667f, 4.697f);
+        break;
         /*
-    case GOSSIP_ACTION_INFO_DEF + 64: // 
-        player->TeleportTo(, f, f, f, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // 
-        player->TeleportTo(, f, f, f, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // 
-        player->TeleportTo(, f, f, f, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // 
-        player->TeleportTo(, f, f, f, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // 
-        player->TeleportTo(, f, f, f, 6);
-        break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // 
-        player->TeleportTo(, f, f, f, 6);
-        break;
     case GOSSIP_ACTION_INFO_DEF + 64: // 
         player->TeleportTo(, f, f, f, 6);
         break;*/
@@ -276,11 +378,10 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
     uint32 menuId;
     ObjectGuid guid;
     std::string code = "";
-
     recvData >> guid >> menuId >> gossipListId;
-    //�Զ������---��ʼ
+    //自定义代码---开始
     Item *pItem = _player->GetItemByGuid(guid);
-    //���item��¯ʯ,��return
+    //如果item是炉石,则return
     if (pItem)
     {
         if (pItem->GetEntry() == 60000)
@@ -289,7 +390,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
             return;
         }
     }
-    //�Զ������---����
+    //自定义代码---结束
     if (!_player->PlayerTalkClass->GetGossipMenu().GetItem(gossipListId))
     {
         recvData.rfinish();

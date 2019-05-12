@@ -1155,6 +1155,13 @@ class spell_sha_lightning_overload : public SpellScriptLoader
                 if (!spellInfo)
                     return;
 
+                // Trigger this script only when player has these telants
+                if (eventInfo.GetActor()->HasSpell(30675) == false &&
+                    eventInfo.GetActor()->HasSpell(30678) == false &&
+                    eventInfo.GetActor()->HasSpell(30679) == false) {
+                    return;
+                }
+
                 uint32 spellId;
 
                 // Lightning Bolt

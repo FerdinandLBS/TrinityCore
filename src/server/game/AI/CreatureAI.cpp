@@ -81,14 +81,14 @@ void CreatureAI::DoZoneInCombat(Creature* creature /*= nullptr*/)
     for (auto const& ref : playerList)
         if (Player* player = ref.GetSource())
         {
-            if (!player->IsAlive() || !CombatManager::CanBeginCombat(creature, player))
-                continue;
+        if (!player->IsAlive() || !CombatManager::CanBeginCombat(creature, player))
+            continue;
 
-            creature->EngageWithTarget(player);
-            for (Unit* pet : player->m_Controlled)
-                creature->EngageWithTarget(pet);
-            if (Unit* vehicle = player->GetVehicleBase())
-                creature->EngageWithTarget(vehicle);
+        creature->EngageWithTarget(player);
+        for (Unit* pet : player->m_Controlled)
+            creature->EngageWithTarget(pet);
+        if (Unit* vehicle = player->GetVehicleBase())
+            creature->EngageWithTarget(vehicle);
         }
 }
 

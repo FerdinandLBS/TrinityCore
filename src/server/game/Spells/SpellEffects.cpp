@@ -4436,6 +4436,8 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
     {
         float dis = 0;
         // Start Info //
+        float step = 0.25f;
+        float maxDeltaZ = step * 4.3f;
         bool succ = true;
         float cx, cy, cz;
         float dx, dy, dz, z[2];
@@ -4461,7 +4463,7 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
             useVmap = true;
 
         //Going foward 0.5f until max distance
-        for (float i = 0.5f; i < dis; i += 0.5f)
+        for (float i = step; i < dis; i += step)
         {
             unitTarget->GetNearPoint2D(nullptr, dx, dy, i, angle);
            
@@ -4469,7 +4471,7 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
             dz = m_caster->GetMap()->GetHeight(m_caster->GetPhaseMask(), dx, dy, cz+1, true);
 
             //Prevent climbing and go around object maybe 2.0f is to small? use 3.0f?
-            if ((dz - cz) < 2.0f && (dz - cz) > -2.0f && (unitTarget->IsWithinLOS(dx, dy, dz)))
+            if ((dz - cz) < maxDeltaZ && (dz - cz) > - maxDeltaZ && (unitTarget->IsWithinLOS(dx, dy, dz)))
             {
                 //No climb, the z differenze between this and prev step is ok. Store this destination for future use or check.
                 cx = dx;
@@ -4483,12 +4485,12 @@ void Spell::EffectLeap(SpellEffIndex /*effIndex*/)
                     //so... change use of vamp and go back 1 step backward and recheck again.
                     swapZone = false;
                     useVmap = !useVmap;
-                    i -= 0.5f;
+                    i -= step;
                 }
                 else
                 {
                     //bad recheck result... so break this and use last good coord for teleport player...
-                    dz += 0.5f;
+                    dz += step;
                     if (i <= 1.0f && !unitTarget->IsOutdoors())
                         succ = false;
                     break;
@@ -5644,7 +5646,7 @@ void Spell::SummonGuardian(uint32 i, uint32 entry, SummonPropertiesEntry const* 
 
         if (summon->HasUnitTypeMask(UNIT_MASK_MINION) && m_targets.HasDst())
             ((Minion*)summon)->SetFollowAngle(unitCaster->GetAbsoluteAngle(summon));
-
+        //summon->SetBaseWeaponDamage()
         if (summon->GetEntry() == 27893)
         {
             if (uint32 weapon = unitCaster->GetUInt32Value(PLAYER_VISIBLE_ITEM_16_ENTRYID))

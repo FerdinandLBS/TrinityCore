@@ -30,6 +30,11 @@
 #include "UnitAI.h"
 #include "UpdateData.h"
 
+#include<iostream>
+#include<CString>
+using std::cout;
+using std::endl;
+
 namespace Trinity
 {
     struct TC_GAME_API VisibleNotifier
@@ -783,6 +788,34 @@ namespace Trinity
     };
 
     // Unit checks
+
+    class MostHPMissingPctInRange
+    {
+    public:
+        MostHPMissingPctInRange(Unit const* obj, float range, bool isCombat) : i_obj(obj), i_combat(isCombat), i_range(range), i_hp(0.0f) { }
+
+        bool operator()(Unit* u)
+        {
+            if (i_combat == true && u->IsInCombat() == false)
+                return false;
+
+            if (u->GetEntry() < 44000 && u->GetTypeId() != TYPEID_PLAYER)
+                return false;
+
+            if (u->IsAlive() && !i_obj->IsHostileTo(u) && i_obj->IsWithinDistInMap(u, i_range) && (100-u->GetHealthPct()) > i_hp)
+            {
+                i_hp = 100-u->GetHealthPct();
+                return true;
+            }
+            return false;
+        }
+
+    private:
+        Unit const* i_obj;
+        bool i_combat;
+        float i_range;
+        float i_hp;
+    };
 
     class MostHPMissingInRange
     {

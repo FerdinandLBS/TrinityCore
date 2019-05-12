@@ -808,6 +808,14 @@ class TC_GAME_API Unit : public WorldObject
         uint32 m_extraAttacks;
         bool m_canDualWield;
 
+        Creature* m_assistances[5];
+
+        void _pushAssistance(Creature* p);
+        bool _isAssistance(Creature* p);
+        void _popAssistance(Creature* p);
+        void _initAssistances();
+        void _resetAssistances();
+
         void _addAttacker(Unit* pAttacker);                  // must be called only from Unit::Attack(Unit*)
         void _removeAttacker(Unit* pAttacker);               // must be called only from Unit::AttackStop()
         Unit* getAttackerForHelper() const;                 // If someone wants to help, who to give them

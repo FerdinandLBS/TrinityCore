@@ -6381,6 +6381,51 @@ void Unit::EnergizeBySpell(Unit* victim, SpellInfo const* spellInfo, int32 damag
     victim->GetThreatManager().ForwardThreatForAssistingMe(this, float(damage)/2, spellInfo, true);
 }
 
+void Unit::_pushAssistance(Creature* p) {
+    for (int i = 0; i < 5; i++) {
+        if (m_assistances[i] == p) {
+            return;
+        }
+        if (m_assistances[i] == nullptr) {
+            m_assistances[i] = p;
+            return;
+        }
+    }
+}
+bool Unit::_isAssistance(Creature* p) {
+    for (int i = 0; i < 5; i++) {
+        if (!m_assistances[i])
+            return false;
+        if (m_assistances[i] == p) {
+            return true;
+        }
+    }
+    return false;
+}
+void Unit::_popAssistance(Creature* p) {
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (m_assistances[i] == p) {
+            m_assistances[i] = nullptr;
+            break;
+        }
+    }
+    for (; i < 4; i++) {
+        if (m_assistances[i] == nullptr)
+            return;
+        m_assistances[i] = m_assistances[i + 1];
+    }
+}
+void Unit::_resetAssistances()
+{
+    for (int i = 0; i < 5; i++) {
+        m_assistances[i] = nullptr;
+    }
+}
+void Unit::_initAssistances() {
+    _resetAssistances();
+}
+
 uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellInfo const* spellProto, uint32 pdamage, DamageEffectType damagetype, uint8 effIndex, Optional<float> const& donePctTotal, uint32 stack /*= 1*/) const
 {
     if (!spellProto || !victim || damagetype == DIRECT_DAMAGE)
@@ -6543,8 +6588,12 @@ float Unit::SpellDamagePctDone(Unit* victim, SpellInfo const* spellProto, Damage
     float DoneTotalMod = 1.0f;
 
     // Pet damage?
-    if (GetTypeId() == TYPEID_UNIT && !IsPet())
+    if (GetTypeId() == TYPEID_UNIT && !IsPet()) {
+        if (GetOwner() && GetOwner()->IsCharmedOwnedByPlayerOrPlayer()) {
+            return 1.0f;
+        }
         DoneTotalMod *= ToCreature()->GetSpellDamageMod(ToCreature()->GetCreatureTemplate()->rank);
+    }
 
     float maxModDamagePercentSchool = 0.0f;
     if (GetTypeId() == TYPEID_PLAYER)
