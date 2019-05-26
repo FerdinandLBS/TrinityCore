@@ -139,7 +139,7 @@ class boss_general_zarithrian : public CreatureScript
                     {
                         case EVENT_SUMMON_ADDS:
                             Talk(SAY_ADDS);
-                            // no break
+                            /* fallthrough */
                         case EVENT_SUMMON_ADDS2:
                         {
                             if (Creature* stalker1 = ObjectAccessor::GetCreature(*me, instance->GetGuidData(DATA_ZARITHRIAN_SPAWN_STALKER_1)))
@@ -202,7 +202,7 @@ class npc_onyx_flamecaller : public CreatureScript
 
             void EnterEvadeMode(EvadeReason /*why*/) override { }
 
-            void IsSummonedBy(Unit* /*summoner*/) override
+            void IsSummonedBy(WorldObject* /*summoner*/) override
             {
                 // Let Zarithrian count as summoner.
                 if (Creature* zarithrian = _instance->GetCreature(DATA_GENERAL_ZARITHRIAN))

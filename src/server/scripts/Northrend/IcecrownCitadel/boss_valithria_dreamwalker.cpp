@@ -230,7 +230,7 @@ class ValithriaDespawner : public BasicEvent
                 case NPC_VALITHRIA_DREAMWALKER:
                     if (InstanceScript* instance = creature->GetInstanceScript())
                         instance->SendEncounterUnit(ENCOUNTER_FRAME_DISENGAGE, creature);
-                    // no break
+                    /* fallthrough */
                 case NPC_BLAZING_SKELETON:
                 case NPC_SUPPRESSER:
                 case NPC_BLISTERING_ZOMBIE:
@@ -875,7 +875,7 @@ class npc_suppresser : public CreatureScript
                 _events.Reset();
             }
 
-            void IsSummonedBy(Unit* /*summoner*/) override
+            void IsSummonedBy(WorldObject* /*summoner*/) override
             {
                 if (Creature* valithria = ObjectAccessor::GetCreature(*me, _instance->GetGuidData(DATA_VALITHRIA_DREAMWALKER)))
                 {
