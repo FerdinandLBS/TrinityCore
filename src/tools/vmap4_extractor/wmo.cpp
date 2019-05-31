@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -17,20 +17,18 @@
  */
 
 #include "vmapexport.h"
-#include "wmo.h"
 #include "adtfile.h"
+#include "cascfile.h"
 #include "vec3d.h"
 #include "VMapDefinitions.h"
+#include "wmo.h"
+#include <fstream>
+#include <map>
 #include <cstdio>
 #include <cstdlib>
-#include <cassert>
-#include <map>
-#include <fstream>
-#undef min
-#undef max
-#include "cascfile.h"
+#include "Errors.h"
 
-WMORoot::WMORoot(std::string &filename)
+WMORoot::WMORoot(std::string const& filename)
     : filename(filename), color(0), nTextures(0), nGroups(0), nPortals(0), nLights(0),
     nDoodadNames(0), nDoodadDefs(0), nDoodadSets(0), RootWMOID(0), flags(0), numLod(0)
 {
@@ -78,6 +76,37 @@ bool WMORoot::open()
             f.read(&flags, 2);
             f.read(&numLod, 2);
         }
+        else if (!strcmp(fourcc, "MODS"))
+        {
+            DoodadData.Sets.resize(size / sizeof(WMO::MODS));
+            f.read(DoodadData.Sets.data(), size);
+        }
+        else if (!strcmp(fourcc,"MODN"))
+        {
+            char* ptr = f.getPointer();
+            char* end = ptr + size;
+            DoodadData.Paths = std::make_unique<char[]>(size);
+            memcpy(DoodadData.Paths.get(), ptr, size);
+            while (ptr < end)
+            {
+                std::string path = ptr;
+
+                char* s = GetPlainName(ptr);
+                FixNameCase(s, strlen(s));
+                FixNameSpaces(s, strlen(s));
+
+                uint32 doodadNameIndex = ptr - f.getPointer();
+                ptr += path.length() + 1;
+
+                if (ExtractSingleModel(path))
+                    ValidDoodadNames.insert(doodadNameIndex);
+            }
+        }
+        else if (!strcmp(fourcc,"MODD"))
+        {
+            DoodadData.Spawns.resize(size / sizeof(WMO::MODD));
+            f.read(DoodadData.Spawns.data(), size);
+        }
         else if (!strcmp(fourcc, "GFID"))
         {
             // full LOD reading code for reference
@@ -117,15 +146,6 @@ bool WMORoot::open()
         {
         }
         else if (!strcmp(fourcc,"MOLT"))
-        {
-        }
-        else if (!strcmp(fourcc,"MODN"))
-        {
-        }
-        else if (!strcmp(fourcc,"MODS"))
-        {
-        }
-        else if (!strcmp(fourcc,"MODD"))
         {
         }
         else if (!strcmp(fourcc,"MOSB"))
@@ -250,6 +270,11 @@ bool WMOGroup::open(WMORoot* rootWMO)
             MOBA = new uint16[size/2];
             moba_size = size/2;
             f.read(MOBA, size);
+        }
+        else if (!strcmp(fourcc,"MODR"))
+        {
+            DoodadReferences.resize(size / sizeof(uint16));
+            f.read(DoodadReferences.data(), size);
         }
         else if (!strcmp(fourcc,"MLIQ"))
         {
@@ -426,7 +451,7 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE* output, bool preciseVectorData)
         // translate triangle indices to new numbers
         for (int i=0; i<3*nColTriangles; ++i)
         {
-            assert(MoviEx[i] < nVertices);
+            ASSERT(MoviEx[i] < nVertices);
             MoviEx[i] = IndexRenum[MoviEx[i]];
         }
 
@@ -443,7 +468,7 @@ int WMOGroup::ConvertToVMAPGroupWmo(FILE* output, bool preciseVectorData)
             if(IndexRenum[i] >= 0)
                 check -= fwrite(MOVT+3*i, sizeof(float), 3, output);
 
-        assert(check==0);
+        ASSERT(check==0);
 
         delete [] MoviEx;
         delete [] IndexRenum;
@@ -509,7 +534,7 @@ WMOGroup::~WMOGroup()
     delete [] LiquBytes;
 }
 
-void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, uint32 mapID, uint32 tileX, uint32 tileY, uint32 originalMapId, FILE* pDirfile, std::vector<ADTOutputCache>* dirfileCache)
+void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, bool isGlobalWmo, uint32 mapID, uint32 originalMapId, FILE* pDirfile, std::vector<ADTOutputCache>* dirfileCache)
 {
     // destructible wmo, do not dump. we can handle the vmap for these
     // in dynamic tree (gameobject vmaps)
@@ -520,10 +545,9 @@ void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, uin
 
     char tempname[512];
     sprintf(tempname, "%s/%s", szWorkDirWmo, WmoInstName);
-    FILE *input;
-    input = fopen(tempname, "r+b");
+    FILE* input = fopen(tempname, "r+b");
 
-    if(!input)
+    if (!input)
     {
         printf("WMOInstance::WMOInstance: couldn't open %s\n", tempname);
         return;
@@ -537,37 +561,30 @@ void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, uin
     if (count != 1 || nVertices == 0)
         return;
 
-    Vec3D position = mapObjDef.Position;
-
-    float x, z;
-    x = position.x;
-    z = position.z;
-    if (x == 0 && z == 0)
-    {
-        position.x = 533.33333f * 32;
-        position.z = 533.33333f * 32;
-    }
-    position = fixCoords(position);
+    Vec3D position = fixCoords(mapObjDef.Position);
     AaBox3D bounds;
     bounds.min = fixCoords(mapObjDef.Bounds.min);
     bounds.max = fixCoords(mapObjDef.Bounds.max);
 
+    if (isGlobalWmo)
+    {
+        position += Vec3D(533.33333f * 32, 533.33333f * 32, 0.0f);
+        bounds += Vec3D(533.33333f * 32, 533.33333f * 32, 0.0f);
+    }
+
     float scale = 1.0f;
     if (mapObjDef.Flags & 0x4)
         scale = mapObjDef.Scale / 1024.0f;
+    uint32 uniqueId = GenerateUniqueObjectId(mapObjDef.UniqueId, 0);
     uint32 flags = MOD_HAS_BOUND;
-    if (tileX == 65 && tileY == 65)
-        flags |= MOD_WORLDSPAWN;
     if (mapID != originalMapId)
         flags |= MOD_PARENT_SPAWN;
 
-    //write mapID, tileX, tileY, Flags, NameSet, UniqueId, Pos, Rot, Scale, Bound_lo, Bound_hi, name
+    //write mapID, Flags, NameSet, UniqueId, Pos, Rot, Scale, Bound_lo, Bound_hi, name
     fwrite(&mapID, sizeof(uint32), 1, pDirfile);
-    fwrite(&tileX, sizeof(uint32), 1, pDirfile);
-    fwrite(&tileY, sizeof(uint32), 1, pDirfile);
     fwrite(&flags, sizeof(uint32), 1, pDirfile);
     fwrite(&mapObjDef.NameSet, sizeof(uint16), 1, pDirfile);
-    fwrite(&mapObjDef.UniqueId, sizeof(uint32), 1, pDirfile);
+    fwrite(&uniqueId, sizeof(uint32), 1, pDirfile);
     fwrite(&position, sizeof(Vec3D), 1, pDirfile);
     fwrite(&mapObjDef.Rotation, sizeof(Vec3D), 1, pDirfile);
     fwrite(&scale, sizeof(float), 1, pDirfile);
@@ -583,7 +600,7 @@ void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, uin
         cacheModelData.Flags = flags & ~MOD_PARENT_SPAWN;
         cacheModelData.Data.resize(
             sizeof(uint16) +    // mapObjDef.NameSet
-            sizeof(uint32) +    // mapObjDef.UniqueId
+            sizeof(uint32) +    // uniqueId
             sizeof(Vec3D) +     // position
             sizeof(Vec3D) +     // mapObjDef.Rotation
             sizeof(float) +     // scale
@@ -595,7 +612,7 @@ void MapObject::Extract(ADT::MODF const& mapObjDef, char const* WmoInstName, uin
 #define CACHE_WRITE(value, size, count, dest) memcpy(dest, value, size * count); dest += size * count;
 
         CACHE_WRITE(&mapObjDef.NameSet, sizeof(uint16), 1, cacheData);
-        CACHE_WRITE(&mapObjDef.UniqueId, sizeof(uint32), 1, cacheData);
+        CACHE_WRITE(&uniqueId, sizeof(uint32), 1, cacheData);
         CACHE_WRITE(&position, sizeof(Vec3D), 1, cacheData);
         CACHE_WRITE(&mapObjDef.Rotation, sizeof(Vec3D), 1, cacheData);
         CACHE_WRITE(&scale, sizeof(float), 1, cacheData);

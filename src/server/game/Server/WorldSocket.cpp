@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -23,6 +23,7 @@
 #include "DatabaseEnv.h"
 #include "Errors.h"
 #include "HmacHash.h"
+#include "IPLocation.h"
 #include "PacketLog.h"
 #include "Realm.h"
 #include "RBAC.h"
@@ -70,9 +71,8 @@ uint8 const WorldSocket::AuthCheckSeed[16] = { 0xC5, 0xC6, 0x98, 0x95, 0x76, 0x3
 uint8 const WorldSocket::SessionKeySeed[16] = { 0x58, 0xCB, 0xCF, 0x40, 0xFE, 0x2E, 0xCE, 0xA6, 0x5A, 0x90, 0xB8, 0x01, 0x68, 0x6C, 0x28, 0x0B };
 uint8 const WorldSocket::ContinuedSessionSeed[16] = { 0x16, 0xAD, 0x0C, 0xD4, 0x46, 0xF9, 0x4F, 0xB2, 0xEF, 0x7D, 0xEA, 0x2A, 0x17, 0x66, 0x4D, 0x2F };
 
-uint8 const ClientTypeSeed_Win[16] = { 0x2A, 0xAC, 0x82, 0xC8, 0x0E, 0x82, 0x9E, 0x2C, 0xA9, 0x02, 0xD7, 0x0C, 0xFA, 0x1A, 0x83, 0x3A };
-uint8 const ClientTypeSeed_Wn64[16] = { 0x59, 0xA5, 0x3F, 0x30, 0x72, 0x88, 0x45, 0x4B, 0x41, 0x9B, 0x13, 0xE6, 0x94, 0xDF, 0x50, 0x3C };
-uint8 const ClientTypeSeed_Mc64[16] = { 0xDB, 0xE7, 0xF8, 0x60, 0x27, 0x6D, 0x6B, 0x40, 0x0A, 0xAA, 0x86, 0xB3, 0x5D, 0x51, 0xA4, 0x17 };
+uint8 const ClientTypeSeed_Wn64[16] = { 0xDD, 0x62, 0x65, 0x17, 0xCC, 0x6D, 0x31, 0x93, 0x2B, 0x47, 0x99, 0x34, 0xCC, 0xDC, 0x0A, 0xBF };
+uint8 const ClientTypeSeed_Mc64[16] = { 0x34, 0x1C, 0xFE, 0xFE, 0x3D, 0x72, 0xAC, 0xA9, 0xA4, 0x40, 0x7D, 0xC5, 0x35, 0xDE, 0xD6, 0x6A };
 
 WorldSocket::WorldSocket(tcp::socket&& socket) : Socket(std::move(socket)),
     _type(CONNECTION_TYPE_REALM), _key(0), _OverSpeedPings(0),
@@ -96,7 +96,6 @@ void WorldSocket::Start()
     std::string ip_address = GetRemoteIpAddress().to_string();
     PreparedStatement* stmt = LoginDatabase.GetPreparedStatement(LOGIN_SEL_IP_INFO);
     stmt->setString(0, ip_address);
-    stmt->setUInt32(1, inet_addr(ip_address.c_str()));
 
     _queryProcessor.AddQuery(LoginDatabase.AsyncQuery(stmt).WithPreparedCallback(std::bind(&WorldSocket::CheckIpCallback, this, std::placeholders::_1)));
 }
@@ -111,9 +110,6 @@ void WorldSocket::CheckIpCallback(PreparedQueryResult result)
             Field* fields = result->Fetch();
             if (fields[0].GetUInt64() != 0)
                 banned = true;
-
-            if (!fields[1].GetString().empty())
-                _ipCountry = fields[1].GetString();
 
         } while (result->NextRow());
 
@@ -670,9 +666,7 @@ void WorldSocket::HandleAuthSessionCallback(std::shared_ptr<WorldPackets::Auth::
 
     SHA256Hash digestKeyHash;
     digestKeyHash.UpdateData(account.Game.KeyData.data(), account.Game.KeyData.size());
-    if (account.Game.OS == "Win")
-        digestKeyHash.UpdateData(ClientTypeSeed_Win, 16);
-    else if (account.Game.OS == "Wn64")
+    if (account.Game.OS == "Wn64")
         digestKeyHash.UpdateData(ClientTypeSeed_Wn64, 16);
     else if (account.Game.OS == "Mc64")
         digestKeyHash.UpdateData(ClientTypeSeed_Mc64, 16);
@@ -748,6 +742,9 @@ void WorldSocket::HandleAuthSessionCallback(std::shared_ptr<WorldPackets::Auth::
         DelayedCloseSocket();
         return;
     }
+
+    if (IpLocationRecord const* location = sIPLocation->GetLocationRecord(address))
+        _ipCountry = location->CountryCode;
 
     ///- Re-check ip locking (same check as in auth).
     if (account.BattleNet.IsLockedToIP)

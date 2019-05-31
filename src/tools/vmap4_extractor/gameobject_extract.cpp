@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -30,7 +30,11 @@
 
 bool ExtractSingleModel(std::string& fname)
 {
-    if (fname.substr(fname.length() - 4, 4) == ".mdx")
+    if (fname.length() < 4)
+        return false;
+
+    std::string extension = fname.substr(fname.length() - 4, 4);
+    if (extension == ".mdx" || extension == ".MDX" || extension == ".mdl" || extension == ".MDL")
     {
         fname.erase(fname.length() - 2, 2);
         fname.append("2");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2011 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -44,7 +44,7 @@ namespace ADT
         Vec3D Rotation;
         AaBox3D Bounds;
         uint16 Flags;
-        uint16 DoodadSet;
+        uint16 DoodadSet;   // can be larger than number of doodad sets in WMO
         uint16 NameSet;
         uint16 Scale;
     };
@@ -69,8 +69,8 @@ public:
     ~ADTFile();
     std::vector<std::string> WmoInstanceNames;
     std::vector<std::string> ModelInstanceNames;
-    bool init(uint32 map_num, uint32 tileX, uint32 tileY, uint32 originalMapId);
-    bool initFromCache(uint32 map_num, uint32 tileX, uint32 tileY, uint32 originalMapId);
+    bool init(uint32 map_num, uint32 originalMapId);
+    bool initFromCache(uint32 map_num, uint32 originalMapId);
 };
 
 char const* GetPlainName(char const* FileName);

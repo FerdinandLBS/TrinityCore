@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2018 TrinityCore <https://www.trinitycore.org/>
+ * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -54,6 +54,7 @@ enum AuraRemoveMode
 {
     AURA_REMOVE_NONE = 0,
     AURA_REMOVE_BY_DEFAULT = 1,       // scripted remove, remove by stack with aura with different ids and sc aura remove
+    AURA_REMOVE_BY_INTERRUPT,         // removed by aura interrupt flag
     AURA_REMOVE_BY_CANCEL,
     AURA_REMOVE_BY_ENEMY_SPELL,       // dispel and absorb aura destroy
     AURA_REMOVE_BY_EXPIRE,            // aura duration has ended
@@ -132,7 +133,7 @@ enum AuraType : uint32
     SPELL_AURA_MOD_PACIFY_SILENCE                           = 60,
     SPELL_AURA_MOD_SCALE                                    = 61,
     SPELL_AURA_PERIODIC_HEALTH_FUNNEL                       = 62,
-    SPELL_AURA_MOD_ADDITIONAL_POWER_COST                    = 63,   // NYI
+    SPELL_AURA_MOD_ADDITIONAL_POWER_COST                    = 63,
     SPELL_AURA_PERIODIC_MANA_LEECH                          = 64,
     SPELL_AURA_MOD_CASTING_SPEED_NOT_STACK                  = 65,
     SPELL_AURA_FEIGN_DEATH                                  = 66,
@@ -497,7 +498,7 @@ enum AuraType : uint32
     SPELL_AURA_425                                          = 425,
     SPELL_AURA_426                                          = 426,
     SPELL_AURA_SCALE_PLAYER_LEVEL                           = 427,  // NYI
-    SPELL_AURA_428                                          = 428,
+    SPELL_AURA_LINKED_SUMMON                                = 428,
     SPELL_AURA_429                                          = 429,
     SPELL_AURA_PLAY_SCENE                                   = 430,
     SPELL_AURA_MOD_OVERRIDE_ZONE_PVP_TYPE                   = 431,  // NYI
@@ -540,7 +541,7 @@ enum AuraType : uint32
     SPELL_AURA_TRIGGER_SPELL_ON_HEALTH_PCT                  = 468,  // Triggers spell when health goes above (MiscA = 0) or falls below (MiscA = 1) specified percent value (once, not every time condition has meet)
     SPELL_AURA_SHOW_CONFIRMATION_PROMPT_WITH_DIFFICULTY     = 469,
     SPELL_AURA_470                                          = 470,
-    SPELL_AURA_MOD_VERSATILITY                              = 471,  // NYI
+    SPELL_AURA_MOD_VERSATILITY                              = 471,
     SPELL_AURA_472                                          = 472,
     SPELL_AURA_PREVENT_DURABILITY_LOSS_FROM_COMBAT          = 473,  // Prevents durability loss from dealing/taking damage
     SPELL_AURA_474                                          = 474,
@@ -561,7 +562,9 @@ enum AuraType : uint32
     SPELL_AURA_489                                          = 489,
     SPELL_AURA_490                                          = 490,
     SPELL_AURA_491                                          = 491,
-    TOTAL_AURAS                                             = 492
+    SPELL_AURA_492                                          = 492,
+    SPELL_AURA_493                                          = 493, // 1 spell, 267116 - Animal Companion (modifies Call Pet)
+    TOTAL_AURAS
 };
 
 enum AuraObjectType
