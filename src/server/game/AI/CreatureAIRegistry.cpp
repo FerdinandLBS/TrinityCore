@@ -36,7 +36,6 @@ namespace AIRegistry
         (new CreatureAIFactory<NullCreatureAI>("NullCreatureAI"))->RegisterSelf();
         (new CreatureAIFactory<TriggerAI>("TriggerAI"))->RegisterSelf();
         (new CreatureAIFactory<AggressorAI>("AggressorAI"))->RegisterSelf();
-        (new CreatureAIFactory<AssistanceAI>("AssistanceAI"))->RegisterSelf();
         (new CreatureAIFactory<ReactorAI>("ReactorAI"))->RegisterSelf();
         (new CreatureAIFactory<PassiveAI>("PassiveAI"))->RegisterSelf();
         (new CreatureAIFactory<CritterAI>("CritterAI"))->RegisterSelf();

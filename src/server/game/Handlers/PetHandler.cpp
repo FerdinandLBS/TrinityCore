@@ -255,8 +255,7 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
                             if (((Pet*)pet)->getPetType() == HUNTER_PET)
                                 GetPlayer()->RemovePet((Pet*)pet, PET_SAVE_AS_DELETED);
                             else
-                                // dismissing a summoned pet is like killing them (this prevents returning a soulshard...)
-                                pet->setDeathState(CORPSE);
+                                GetPlayer()->RemovePet((Pet*)pet, PET_SAVE_NOT_IN_SLOT);
                         }
                         else if (pet->HasUnitTypeMask(UNIT_MASK_MINION))
                         {
@@ -327,14 +326,14 @@ void WorldSession::HandlePetActionHelper(Unit* pet, ObjectGuid guid1, uint32 spe
             {
                 if (unit_target)
                 {
-                    if (!pet->IsFocusing())
+                    if (!pet->HasSpellFocus())
                         pet->SetInFront(unit_target);
                     if (Player* player = unit_target->ToPlayer())
                         pet->SendUpdateToPlayer(player);
                 }
                 else if (Unit* unit_target2 = spell->m_targets.GetUnitTarget())
                 {
-                    if (!pet->IsFocusing())
+                    if (!pet->HasSpellFocus())
                         pet->SetInFront(unit_target2);
                     if (Player* player = unit_target2->ToPlayer())
                         pet->SendUpdateToPlayer(player);
@@ -885,4 +884,9 @@ void WorldSession::HandleLearnPreviewTalentsPet(WorldPacket& recvData)
     _player->SendTalentsInfoData(true);
 
     recvData.rfinish();
+}
+
+void WorldSession::HandleRequestPetInfoOpcode(WorldPacket& /*recvPacket*/)
+{
+    GetPlayer()->PetSpellInitialize();
 }
