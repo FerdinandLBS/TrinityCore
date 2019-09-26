@@ -1,4 +1,4 @@
-﻿
+
 #include "ScriptMgr.h"
 #include "Containers.h"
 #include "DBCStores.h"
@@ -15,6 +15,7 @@
 #include "TemporarySummon.h"
 
 #include "CombatAI.h"
+#include "AssistanceAI.h"
 #include "Random.h"
 #include "MotionMaster.h"
 
@@ -30,11 +31,11 @@ public:
         char* GetRandomBye() {
             switch (irand(0, 3)) {
             case 0:
-                return "再见~";
+                return "??~";
             case 1:
-                return "保重~";
+                return "??~";
             case 2:
-                return "回头见";
+                return "???";
             default:
                 return "ByeBye";
             }

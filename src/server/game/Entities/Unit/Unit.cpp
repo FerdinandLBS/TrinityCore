@@ -6513,8 +6513,12 @@ float Unit::SpellDamagePctDone(Unit* victim, SpellInfo const* spellProto, Damage
     float DoneTotalMod = 1.0f;
 
     // Pet damage?
-    if (GetTypeId() == TYPEID_UNIT && !IsPet())
+    if (GetTypeId() == TYPEID_UNIT && !IsPet()) {
+        if (GetOwner() && GetOwner()->IsCharmedOwnedByPlayerOrPlayer()) {
+            return 1.0f;
+        }
         DoneTotalMod *= ToCreature()->GetSpellDamageMod(ToCreature()->GetCreatureTemplate()->rank);
+    }
 
     float maxModDamagePercentSchool = 0.0f;
     if (GetTypeId() == TYPEID_PLAYER)
@@ -13466,4 +13470,50 @@ std::string Unit::GetDebugInfo() const
         << " Class: " << std::to_string(GetClass()) << "\n"
         << " " << (movespline ? movespline->ToString() : "Movespline: <none>");
     return sstr.str();
+}
+
+
+void Unit::_pushAssistance(Creature* p) {
+    for (int i = 0; i < 5; i++) {
+        if (m_assistances[i] == p) {
+            return;
+        }
+        if (m_assistances[i] == nullptr) {
+            m_assistances[i] = p;
+            return;
+        }
+    }
+}
+bool Unit::_isAssistance(Creature* p) {
+    for (int i = 0; i < 5; i++) {
+        if (!m_assistances[i])
+            return false;
+        if (m_assistances[i] == p) {
+            return true;
+        }
+    }
+    return false;
+}
+void Unit::_popAssistance(Creature* p) {
+    int i;
+    for (i = 0; i < 5; i++) {
+        if (m_assistances[i] == p) {
+            m_assistances[i] = nullptr;
+            break;
+        }
+    }
+    for (; i < 4; i++) {
+        if (m_assistances[i] == nullptr)
+            return;
+        m_assistances[i] = m_assistances[i + 1];
+    }
+}
+void Unit::_resetAssistances()
+{
+    for (int i = 0; i < 5; i++) {
+        m_assistances[i] = nullptr;
+    }
+}
+void Unit::_initAssistances() {
+    _resetAssistances();
 }

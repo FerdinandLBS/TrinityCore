@@ -722,6 +722,14 @@ enum ReactiveType
 class TC_GAME_API Unit : public WorldObject
 {
     public:
+        Creature * m_assistances[5];
+
+        void _pushAssistance(Creature* p);
+        bool _isAssistance(Creature* p);
+        void _popAssistance(Creature* p);
+        void _initAssistances();
+        void _resetAssistances();
+
         typedef std::set<Unit*> AttackerSet;
         typedef std::set<Unit*> ControlList;
         typedef std::vector<Unit*> UnitVector;

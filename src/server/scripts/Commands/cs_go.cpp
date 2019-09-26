@@ -514,7 +514,7 @@ public:
             }
 
             // remove any matches without spawns
-            Trinity::Containers::EraseIf(matches, [&spawnLookup](decltype(matches)::value_type const& pair) { return spawnLookup[pair.second->Entry].empty(); });
+            //Trinity::Containers::EraseIf(matches, [&spawnLookup](decltype(matches)::value_type const& pair) { return spawnLookup[pair.second->Entry].empty(); });
         }
 
         // check if we even have any matches left
