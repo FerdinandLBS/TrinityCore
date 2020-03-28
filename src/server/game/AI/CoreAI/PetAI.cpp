@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -170,9 +169,9 @@ void PetAI::UpdateAI(uint32 diff)
                 // No enemy, check friendly
                 if (!spellUsed)
                 {
-                    for (GuidSet::const_iterator tar = _allySet.begin(); tar != _allySet.end(); ++tar)
+                    for (ObjectGuid target : _allySet)
                     {
-                        Unit* ally = ObjectAccessor::GetUnit(*me, *tar);
+                        Unit* ally = ObjectAccessor::GetUnit(*me, target);
 
                         //only buff targets that are in combat, unless the spell can only be cast while out of combat
                         if (!ally)
@@ -219,8 +218,8 @@ void PetAI::UpdateAI(uint32 diff)
         }
 
         // deleted cached Spell objects
-        for (TargetSpellList::const_iterator itr = targetSpellStore.begin(); itr != targetSpellStore.end(); ++itr)
-            delete itr->second;
+        for (std::pair<Unit*, Spell*> const& unitspellpair : targetSpellStore)
+            delete unitspellpair.second;
     }
 
     // Update speed as needed to prevent dropping too far behind and despawning
@@ -350,7 +349,7 @@ Unit* PetAI::SelectNextTarget(bool allowAutoSelect) const
     if (me->HasReactState(REACT_AGGRESSIVE) && allowAutoSelect)
     {
         if (!me->GetCharmInfo()->IsReturning() || me->GetCharmInfo()->IsFollowing() || me->GetCharmInfo()->IsAtStay())
-            if (Unit* nearTarget = me->SelectNearestHostileUnitInAggroRange(true))
+            if (Unit* nearTarget = me->SelectNearestHostileUnitInAggroRange(true, true))
                 return nearTarget;
     }
 
@@ -420,8 +419,12 @@ void PetAI::DoAttack(Unit* target, bool chase)
 
             if (me->HasUnitState(UNIT_STATE_FOLLOW))
                 me->GetMotionMaster()->Remove(FOLLOW_MOTION_TYPE);
-
-            me->GetMotionMaster()->MoveChase(target, me->GetPetChaseDistance(), float(M_PI));
+            
+            // Pets with ranged attacks should not care about the chase angle at all.
+            float chaseDistance = me->GetPetChaseDistance();
+            float angle = chaseDistance == 0.f ? float(M_PI) : 0.f;
+            float tolerance = chaseDistance == 0.f ? float(M_PI_4) : float(M_PI * 2);
+            me->GetMotionMaster()->MoveChase(target, ChaseRange(0.f, chaseDistance), ChaseAngle(angle, tolerance));
         }
         else // (Stay && ((Aggressive || Defensive) && In Melee Range)))
         {
@@ -626,6 +629,14 @@ void PetAI::UpdateAllies()
     }
     else // remove group
         _allySet.insert(owner->GetGUID());
+}
+
+void PetAI::OnCharmed(bool isNew)
+{
+    if (me->IsCharmed())
+        me->GetMotionMaster()->MoveFollow(me->GetCharmer(), PET_FOLLOW_DIST, me->GetFollowAngle());
+
+    CreatureAI::OnCharmed(isNew);
 }
 
 void PetAI::ClearCharmInfoFlags()

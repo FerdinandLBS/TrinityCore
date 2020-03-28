@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -22,6 +21,7 @@
 #include "MovementDefines.h"
 #include "PathGenerator.h"
 #include "RandomMovementGenerator.h"
+#include "UnitAI.h"
 #include "WaypointMovementGenerator.h"
 
 MovementGenerator::~MovementGenerator() { }
@@ -57,4 +57,10 @@ WaypointMovementFactory::WaypointMovementFactory() : MovementGeneratorCreator(WA
 MovementGenerator* WaypointMovementFactory::Create(Unit* /*object*/) const
 {
     return new WaypointMovementGenerator<Creature>();
+}
+
+void MovementGenerator::NotifyAIOnFinalize(Unit* object)
+{
+    if (UnitAI* ai = object->GetAI())
+        ai->OnMovementGeneratorFinalized(GetMovementGeneratorType());
 }

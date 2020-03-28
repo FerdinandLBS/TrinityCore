@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -24,9 +23,9 @@
 #include "ObjectMgr.h"                                      // for normalizePlayerName
 #include "Player.h"
 #include <cctype>
-#include <utf8.h>
 
 static size_t const MAX_CHANNEL_PASS_STR = 31;
+static size_t const MAX_CHANNEL_NAME_STR = 31;
 
 void WorldSession::HandleJoinChannel(WorldPacket& recvPacket)
 {
@@ -58,13 +57,13 @@ void WorldSession::HandleJoinChannel(WorldPacket& recvPacket)
         return;
     }
 
-    if (!utf8::is_valid(channelName.begin(), channelName.end()))
+    if (password.length() > MAX_CHANNEL_PASS_STR)
     {
-        TC_LOG_ERROR("network", "Player %s tried to create a channel with an invalid UTF8 sequence - blocked", GetPlayer()->GetGUID().ToString().c_str());
+        TC_LOG_ERROR("network", "Player %s tried to create a channel with a password more than " SZFMTD " characters long - blocked", GetPlayer()->GetGUID().ToString().c_str(), MAX_CHANNEL_PASS_STR);
         return;
     }
 
-    if (!ValidateHyperlinksAndMaybeKick(channelName))
+    if (!DisallowHyperlinksAndMaybeKick(channelName))
         return;
 
     if (ChannelMgr* cMgr = ChannelMgr::forTeam(GetPlayer()->GetTeam()))
@@ -76,6 +75,12 @@ void WorldSession::HandleJoinChannel(WorldPacket& recvPacket)
         }
         else
         { // custom channel
+            if (channelName.length() > MAX_CHANNEL_NAME_STR)
+            {
+                TC_LOG_ERROR("network", "Player %s tried to create a channel with a name more than " SZFMTD " characters long - blocked", GetPlayer()->GetGUID().ToString().c_str(), MAX_CHANNEL_NAME_STR);
+                return;
+            }
+
             if (Channel* channel = cMgr->GetCustomChannel(channelName))
                 channel->JoinChannel(GetPlayer(), password);
             else if (Channel* channel = cMgr->CreateCustomChannel(channelName))

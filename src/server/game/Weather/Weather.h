@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -67,7 +66,7 @@ class TC_GAME_API Weather
 {
     public:
 
-        Weather(uint32 zone, WeatherData const* weatherChances);
+        Weather(uint32 zoneId, WeatherData const* weatherChances);
         ~Weather() { };
 
         bool Update(uint32 diff);
@@ -76,7 +75,7 @@ class TC_GAME_API Weather
 
         void SendWeatherUpdateToPlayer(Player* player);
         static void SendFineWeatherUpdateToPlayer(Player* player);
-        void SetWeather(WeatherType type, float grade);
+        void SetWeather(WeatherType type, float intensity);
 
         /// For which zone is this weather?
         uint32 GetZone() const { return m_zone; };
@@ -87,7 +86,7 @@ class TC_GAME_API Weather
         WeatherState GetWeatherState() const;
         uint32 m_zone;
         WeatherType m_type;
-        float m_grade;
+        float m_intensity;
         IntervalTimer m_timer;
         WeatherData const* m_weatherChances;
 };
