@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -74,8 +73,10 @@ class TC_GAME_API CritterAI : public PassiveAI
     public:
         explicit CritterAI(Creature* creature) : PassiveAI(creature) { }
 
-        void DamageTaken(Unit* done_by, uint32& /*damage*/) override;
+        void JustEngagedWith(Unit* /*who*/) override;
         void EnterEvadeMode(EvadeReason why) override;
+
+        void OnMovementGeneratorFinalized(MovementGeneratorType type) override;
 
         static int32 Permissible(Creature const* creature);
 };

@@ -1,20 +1,19 @@
-ï»¿/*
-* Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
-* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
-*
-* This program is free software; you can redistribute it and/or modify it
-* under the terms of the GNU General Public License as published by the
-* Free Software Foundation; either version 2 of the License, or (at your
-* option) any later version.
-*
-* This program is distributed in the hope that it will be useful, but WITHOUT
-* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-* more details.
-*
-* You should have received a copy of the GNU General Public License along
-* with this program. If not, see <http://www.gnu.org/licenses/>.
-*/
+/*
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 2 of the License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+ * more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include "WorldSession.h"
 #include "AccountMgr.h"
@@ -39,6 +38,7 @@
 #include "Language.h"
 #include "Log.h"
 #include "MapManager.h"
+#include "MiscPackets.h"
 #include "Object.h"
 #include "ObjectAccessor.h"
 #include "ObjectMgr.h"
@@ -94,7 +94,7 @@ void BuildSpecailTeleport(Player* player, Item* item, uint32 sender)
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
 
-    AddGossipItemFor(player, 4, "é»‘çŸ³å¡” 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+    AddGossipItemFor(player, 4, "ºÚÊ¯Ëþ 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -103,13 +103,13 @@ void BuildRaidTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 4, "ç†”ç«ä¹‹å¿ƒ(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 301);
-    AddGossipItemFor(player, 4, "é»‘ç¿¼ä¹‹å·¢(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 302);
-    AddGossipItemFor(player, 4, "å®‰å…¶æ‹‰(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 303);
-    AddGossipItemFor(player, 4, "ç¥–å°”æ ¼æ‹‰å¸ƒ(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 304);
-    AddGossipItemFor(player, 4, "ç¥–é˜¿æ›¼(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 305);
-    AddGossipItemFor(player, 4, "å¡æ‹‰èµž(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 306);
-    AddGossipItemFor(player, 4, "å¥¥å¦®å…‹å¸Œäºšå·¢ç©´(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 307);
+    AddGossipItemFor(player, 4, "ÈÛ»ðÖ®ÐÄ(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 301);
+    AddGossipItemFor(player, 4, "ºÚÒíÖ®³²(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 302);
+    AddGossipItemFor(player, 4, "°²ÆäÀ­(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 303);
+    AddGossipItemFor(player, 4, "×æ¶û¸ñÀ­²¼(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 304);
+    AddGossipItemFor(player, 4, "×æ°¢Âü(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 305);
+    AddGossipItemFor(player, 4, "¿¨À­ÔÞ(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 306);
+    AddGossipItemFor(player, 4, "°ÂÄÝ¿ËÏ£ÑÇ³²Ñ¨(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 307);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -118,17 +118,17 @@ void BuildNorthlandTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 13, "è¾¾æ‹‰ç„¶", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 101);
-    AddGossipItemFor(player, 9, "ä¹Œç‰¹åŠ å¾·å ¡åž’", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 104);
-    AddGossipItemFor(player, 9, "é­”æž¢", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 103);
-    AddGossipItemFor(player, 9, "é¾™çœ ç¥žæ®¿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 102);
-    AddGossipItemFor(player, 9, "å¤ä»£çŽ‹å›½", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 105);
-    AddGossipItemFor(player, 9, "è¾¾å…‹è¨éš†è¦å¡ž", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 111);
-    AddGossipItemFor(player, 9, "å¤è¾¾å…‹", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 106);
-    AddGossipItemFor(player, 9, "é£Žæš´ç¾¤å±±", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 107);
-    AddGossipItemFor(player, 9, "çº³å…‹è¨çŽ›æ–¯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 110);
-    AddGossipItemFor(player, 9, "é“¶è‰²æ¯”æ­¦åœº", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 108);
-    AddGossipItemFor(player, 9, "å†°å† å ¡åž’", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 109);
+    AddGossipItemFor(player, 13, "´ïÀ­È»", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 101);
+    AddGossipItemFor(player, 9, "ÎÚÌØ¼ÓµÂ±¤ÀÝ", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 104);
+    AddGossipItemFor(player, 9, "Ä§Êà", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 103);
+    AddGossipItemFor(player, 9, "ÁúÃßÉñµî", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 102);
+    AddGossipItemFor(player, 9, "¹Å´úÍõ¹ú", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 105);
+    AddGossipItemFor(player, 9, "´ï¿ËÈøÂ¡ÒªÈû", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 111);
+    AddGossipItemFor(player, 9, "¹Å´ï¿Ë", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 106);
+    AddGossipItemFor(player, 9, "·ç±©ÈºÉ½", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 107);
+    AddGossipItemFor(player, 9, "ÄÉ¿ËÈøÂêË¹", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 110);
+    AddGossipItemFor(player, 9, "ÒøÉ«±ÈÎä³¡", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 108);
+    AddGossipItemFor(player, 9, "±ù¹Ú±¤ÀÝ", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 109);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -137,14 +137,14 @@ void BuildOutlandTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 13, "æ²™å¡”æ–¯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 201);
-    AddGossipItemFor(player, 9, "åœ°ç‹±ç«å ¡åž’", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 202);
-    AddGossipItemFor(player, 9, "ç›˜ç‰™æ°´åº“", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 203);
-    AddGossipItemFor(player, 9, "å¥¥é‡‘é¡¿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 204);
-    AddGossipItemFor(player, 9, "é£Žæš´æˆ˜èˆ°", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 205);
-    AddGossipItemFor(player, 9, "æˆˆé²å°”å·¢ç©´", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 206);
-    AddGossipItemFor(player, 9, "é»‘æš—ç¥žåº™", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 207);
-    AddGossipItemFor(player, 9, "æ—¶å…‰ä¹‹ç©´", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 208);
+    AddGossipItemFor(player, 13, "É³ËþË¹", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 201);
+    AddGossipItemFor(player, 9, "µØÓü»ð±¤ÀÝ", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 202);
+    AddGossipItemFor(player, 9, "ÅÌÑÀË®¿â", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 203);
+    AddGossipItemFor(player, 9, "°Â½ð¶Ù", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 204);
+    AddGossipItemFor(player, 9, "·ç±©Õ½½¢", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 205);
+    AddGossipItemFor(player, 9, "¸êÂ³¶û³²Ñ¨", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 206);
+    AddGossipItemFor(player, 9, "ºÚ°µÉñÃí", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 207);
+    AddGossipItemFor(player, 9, "Ê±¹âÖ®Ñ¨", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 208);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -153,25 +153,25 @@ void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 4, "æ€’ç„°è£‚è°· 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
-    AddGossipItemFor(player, 4, "æ­»äº¡çŸ¿äº• 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
-    AddGossipItemFor(player, 4, "å“€åšŽæ´žç©´ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
-    AddGossipItemFor(player, 4, "å½±ç‰™åŸŽå ¡ 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
-    AddGossipItemFor(player, 4, "é»‘æš—æ·±æ¸Š 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
-    AddGossipItemFor(player, 4, "æš´é£ŽåŸŽç›‘ç‹± 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
-    AddGossipItemFor(player, 4, "è¯ºèŽ«ç‘žæ ¹ 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
-    AddGossipItemFor(player, 4, "å‰ƒåˆ€æ²¼æ³½ 25 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
-    AddGossipItemFor(player, 4, "è¡€è‰²ä¿®é“é™¢ 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
-    AddGossipItemFor(player, 4, "å‰ƒåˆ€é«˜åœ° 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
-    AddGossipItemFor(player, 4, "å¥¥è¾¾æ›¼ 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
-    AddGossipItemFor(player, 4, "ç¥–å°”æ³•æ‹‰å…‹ 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
-    AddGossipItemFor(player, 4, "çŽ›æ‹‰é¡¿ 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
-    AddGossipItemFor(player, 4, "åŽ„è¿ä¹‹æ§Œ 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
-    AddGossipItemFor(player, 4, "é€šçµå­¦é™¢ 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
-    AddGossipItemFor(player, 4, "æ–¯å¦ç´¢å§† 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
-    AddGossipItemFor(player, 4, "é»‘çŸ³æ·±æ¸Š 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
-    AddGossipItemFor(player, 4, "æ²‰æ²¡çš„ç¥žåº™ 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
-    AddGossipItemFor(player, 4, "é»‘çŸ³å¡” 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
+    AddGossipItemFor(player, 4, "Å­ÑæÁÑ¹È 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
+    AddGossipItemFor(player, 4, "ËÀÍö¿ó¾® 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
+    AddGossipItemFor(player, 4, "°§º¿¶´Ñ¨ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
+    AddGossipItemFor(player, 4, "Ó°ÑÀ³Ç±¤ 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
+    AddGossipItemFor(player, 4, "ºÚ°µÉîÔ¨ 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
+    AddGossipItemFor(player, 4, "±©·ç³Ç¼àÓü 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
+    AddGossipItemFor(player, 4, "ÅµÄªÈð¸ù 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
+    AddGossipItemFor(player, 4, "Ìêµ¶ÕÓÔó 25 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
+    AddGossipItemFor(player, 4, "ÑªÉ«ÐÞµÀÔº 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
+    AddGossipItemFor(player, 4, "Ìêµ¶¸ßµØ 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
+    AddGossipItemFor(player, 4, "°Â´ïÂü 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
+    AddGossipItemFor(player, 4, "×æ¶û·¨À­¿Ë 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
+    AddGossipItemFor(player, 4, "ÂêÀ­¶Ù 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
+    AddGossipItemFor(player, 4, "¶òÔËÖ®é³ 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
+    AddGossipItemFor(player, 4, "Í¨ÁéÑ§Ôº 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
+    AddGossipItemFor(player, 4, "Ë¹Ì¹Ë÷Ä· 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
+    AddGossipItemFor(player, 4, "ºÚÊ¯ÉîÔ¨ 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
+    AddGossipItemFor(player, 4, "³ÁÃ»µÄÉñÃí 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
+    AddGossipItemFor(player, 4, "ºÚÊ¯Ëþ 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -188,22 +188,22 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 3: // DNSS
         player->TeleportTo(1, 9961, 2055, 1329, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 4: // åŸƒç´¢è¾¾
+    case GOSSIP_ACTION_INFO_DEF + 4: // °£Ë÷´ï
         player->TeleportTo(530, -3998.3f, -11864.1, 1, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 5: // å¥¥æ ¼ç‘žçŽ›
+    case GOSSIP_ACTION_INFO_DEF + 5: // °Â¸ñÈðÂê
         player->TeleportTo(1, 1676.25f, -4313.45f, 62.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 6: // é›·éœ†å´–
+    case GOSSIP_ACTION_INFO_DEF + 6: // À×öªÑÂ
         player->TeleportTo(1, -1150.877197f, 15.459573f, 180.088318f, 1.300810f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 7: // å¹½æš—åŸŽ
+    case GOSSIP_ACTION_INFO_DEF + 7: // ÓÄ°µ³Ç
         player->TeleportTo(0, 1596.05835f, 240.41658f, -13.89129f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 8: // é“¶æœˆåŸŽ
+    case GOSSIP_ACTION_INFO_DEF + 8: // ÒøÔÂ³Ç
         player->TeleportTo(530, 9930.45f, -7129.1f, 48, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 9: // æ£˜é½¿åŸŽ
+    case GOSSIP_ACTION_INFO_DEF + 9: // ¼¬³Ý³Ç
         player->TeleportTo(1, -977, -3788, 6, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 10:
@@ -212,147 +212,147 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 11:
         player->TeleportTo(1, -7156.56f, -3825.1f, 8.7f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 12: //å¤–åŸŸ
+    case GOSSIP_ACTION_INFO_DEF + 12: //ÍâÓò
         CloseGossipMenuFor(player);
         BuildOutlandTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 13: // è¯ºæ£®å¾·
+    case GOSSIP_ACTION_INFO_DEF + 13: // ÅµÉ­µÂ
         CloseGossipMenuFor(player);
         BuildNorthlandTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 14: // GMå²› 
+    case GOSSIP_ACTION_INFO_DEF + 14: // GMµº 
         player->TeleportTo(1, 16222.1, 16252.1, 12.5872, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 15: // 5äººæœ¬
+    case GOSSIP_ACTION_INFO_DEF + 15: // 5ÈË±¾
         CloseGossipMenuFor(player);
         BuildDungeonTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 16: // å›¢é˜Ÿæœ¬
+    case GOSSIP_ACTION_INFO_DEF + 16: // ÍÅ¶Ó±¾
         CloseGossipMenuFor(player);
         BuildRaidTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 51: // æ€’ç„°è£‚è°·
+    case GOSSIP_ACTION_INFO_DEF + 51: // Å­ÑæÁÑ¹È
         player->TeleportTo(389, 3.8, -14.8, -17, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 52: // çŸ¿äº•
+    case GOSSIP_ACTION_INFO_DEF + 52: // ¿ó¾®
         player->TeleportTo(36, -16, -383, 62, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 53: // å“€åšŽ
+    case GOSSIP_ACTION_INFO_DEF + 53: // °§º¿
         player->TeleportTo(43, -163.49f, 132.89f, -73.66, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 54: // å½±ç‰™
+    case GOSSIP_ACTION_INFO_DEF + 54: // Ó°ÑÀ
         player->TeleportTo(33, -229.1f, 2109.17f, 77, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 55: // æ·±æ¸Š
+    case GOSSIP_ACTION_INFO_DEF + 55: // ÉîÔ¨
         player->TeleportTo(48, -151.88f, 106.95f, -39.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 56: // ç›‘ç‹±
+    case GOSSIP_ACTION_INFO_DEF + 56: // ¼àÓü
         player->TeleportTo(34, 54.2f, 0.28f, -18, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 57: // è¯ºèŽ«ç‘žæ ¹
+    case GOSSIP_ACTION_INFO_DEF + 57: // ÅµÄªÈð¸ù
         player->TeleportTo(90, -327.5f, -4.7f, -152.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 58: // è¡€è‰²
+    case GOSSIP_ACTION_INFO_DEF + 58: // ÑªÉ«
         player->TeleportTo(0, 2894.34f, -809.55f, 160.33f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 59: // å‰ƒåˆ€æ²¼æ³½
+    case GOSSIP_ACTION_INFO_DEF + 59: // Ìêµ¶ÕÓÔó
         player->TeleportTo(47, 1943, 1544.63f, 82, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 60: // çŽ›æ‹‰é¡¿
+    case GOSSIP_ACTION_INFO_DEF + 60: // ÂêÀ­¶Ù
         player->TeleportTo(349, 1019.69f, -458.3f, -43, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 61: // å¥¥è¾¾æ›¼
+    case GOSSIP_ACTION_INFO_DEF + 61: // °Â´ïÂü
         player->TeleportTo(70, -226.8, 49.1f, -45.9f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 62: // åŽ„è¿
+    case GOSSIP_ACTION_INFO_DEF + 62: // ¶òÔË
         player->TeleportTo(429, -201.11f, -328.66f, -2.7f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 63: // é€šçµå­¦é™¢
+    case GOSSIP_ACTION_INFO_DEF + 63: // Í¨ÁéÑ§Ôº
         player->TeleportTo(289, 196.39f, 127, 135, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // å‰ƒåˆ€é«˜åœ°
+    case GOSSIP_ACTION_INFO_DEF + 64: // Ìêµ¶¸ßµØ
         player->TeleportTo(129, 2592.55f, 1107.5f, 51.5f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 65: // æ–¯å¦ç´¢å§†
+    case GOSSIP_ACTION_INFO_DEF + 65: // Ë¹Ì¹Ë÷Ä·
         player->TeleportTo(329, 3394.13f, -3380.16f, 143.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 66: // ç¥–å°”æ³•æ‹‰å…‹
+    case GOSSIP_ACTION_INFO_DEF + 66: // ×æ¶û·¨À­¿Ë
         player->TeleportTo(209, 1213.52f, 841.59f, 9, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 67: // é»‘çŸ³æ·±æ¸Š
+    case GOSSIP_ACTION_INFO_DEF + 67: // ºÚÊ¯ÉîÔ¨
         player->TeleportTo(230, 458.3f, 26.5f, -70.64f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 68: // æ²‰æ²¡çš„ç¥žåº™
+    case GOSSIP_ACTION_INFO_DEF + 68: // ³ÁÃ»µÄÉñÃí
         player->TeleportTo(109, -319.23f, 99.9f, -131.85f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 69: // é»‘çŸ³å¡”
+    case GOSSIP_ACTION_INFO_DEF + 69: // ºÚÊ¯Ëþ
         player->TeleportTo(229, 78.5f, -225.0f, 50.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 101: // è¾¾æ‹‰ç‡ƒ
+    case GOSSIP_ACTION_INFO_DEF + 101: // ´ïÀ­È¼
         player->TeleportTo(571, 5797, 795, 664, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 102: // é¾™çœ ç¥žæ®¿
+    case GOSSIP_ACTION_INFO_DEF + 102: // ÁúÃßÉñµî
         player->TeleportTo(571, 3546.607178f, 273.218842f, 342.722f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 103: // é­”æž¢
+    case GOSSIP_ACTION_INFO_DEF + 103: // Ä§Êà
         player->TeleportTo(571, 3831.737061f, 6960.383789f, 104.784271f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 104: // ä¹Œç‰¹åŠ å¾·å ¡åž’
+    case GOSSIP_ACTION_INFO_DEF + 104: // ÎÚÌØ¼ÓµÂ±¤ÀÝ
         player->TeleportTo(571, 1260.176636f, -4843.805664f, 215.763993f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 105: // å¤ä»£çŽ‹å›½
+    case GOSSIP_ACTION_INFO_DEF + 105: // ¹Å´úÍõ¹ú
         player->TeleportTo(571, 3695.932129f, 2143.285889f, 34.147270f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 106: // å¤è¾¾å…‹
+    case GOSSIP_ACTION_INFO_DEF + 106: // ¹Å´ï¿Ë
         player->TeleportTo(571, 6938.497559f, -4452.765137f, 450.868896f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 107: // é£Žæš´ç¾¤å±±
+    case GOSSIP_ACTION_INFO_DEF + 107: // ·ç±©ÈºÉ½
         player->TeleportTo(571, 8949.208008f, -1266.415894f, 1025.499391f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 108: // é“¶è‰²æ¯”æ­¦åœº
+    case GOSSIP_ACTION_INFO_DEF + 108: // ÒøÉ«±ÈÎä³¡
         player->TeleportTo(571, 8486.941406f, 775.859863f, 558.568299f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 109: // å†°å† å ¡åž’
+    case GOSSIP_ACTION_INFO_DEF + 109: // ±ù¹Ú±¤ÀÝ
         player->TeleportTo(571, 5864.67f, 2169.83f, 636.1f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 110: // çº³å…‹è¨çŽ›æ–¯
+    case GOSSIP_ACTION_INFO_DEF + 110: // ÄÉ¿ËÈøÂêË¹
         player->TeleportTo(571, 3666.089844f, -1269.738403f, 243.508927f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 111: // è¾¾å…‹è¨éš†è¦å¡ž
+    case GOSSIP_ACTION_INFO_DEF + 111: // ´ï¿ËÈøÂ¡ÒªÈû
         player->TeleportTo(571, 4772.635742f, -2046.703125f, 238.28464f, 0.061439f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 201: // æ²™å¡”æ–¯
+    case GOSSIP_ACTION_INFO_DEF + 201: // É³ËþË¹
         player->TeleportTo(530, -1859.95f, 5438.85f, -10.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 202: // åœ°ç‹±ç«
+    case GOSSIP_ACTION_INFO_DEF + 202: // µØÓü»ð
         player->TeleportTo(530, -321.64f, 3082.49f, 32.6f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 203: // æ°´åº“
+    case GOSSIP_ACTION_INFO_DEF + 203: // Ë®¿â
         player->TeleportTo(530, 764.034058f, 6866.363770f, -68.277512f, 6.266417f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 204: // å¥¥é‡‘é¡¿
+    case GOSSIP_ACTION_INFO_DEF + 204: // °Â½ð¶Ù
         player->TeleportTo(530, -3377.06f, 4954.24f, -66.5f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 205: // é£Žæš´æˆ˜èˆ°
+    case GOSSIP_ACTION_INFO_DEF + 205: // ·ç±©Õ½½¢
         player->TeleportTo(530, 3101.006592f, 1537.525879f, 190.31f, 4.649131f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 206: // æ ¼é²å°”
+    case GOSSIP_ACTION_INFO_DEF + 206: // ¸ñÂ³¶û
         player->TeleportTo(565, 62.784199f, 35.462002f, -3.983500f, 1.418440f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 207: // é»‘åº™
+    case GOSSIP_ACTION_INFO_DEF + 207: // ºÚÃí
         player->TeleportTo(564, 96.45f, 1002.35f, -86.8f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 208: // æ—¶å…‰ä¹‹ç©´
+    case GOSSIP_ACTION_INFO_DEF + 208: // Ê±¹âÖ®Ñ¨
         player->TeleportTo(1, -8509.349606f, -4356.310059f, -208.358994f, 6);
         break;
         // Raid telepot
-    case GOSSIP_ACTION_INFO_DEF + 301: // ç†”ç«ä¹‹å¿ƒ
+    case GOSSIP_ACTION_INFO_DEF + 301: // ÈÛ»ðÖ®ÐÄ
         player->TeleportTo(409, 1087.588f, -477.341f, -107.0f, 0.786652f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 305: // ç¥–é˜¿æ›¼
+    case GOSSIP_ACTION_INFO_DEF + 305: // ×æ°¢Âü
         player->TeleportTo(530, 6832.783203f, -7858.009766f, 163.976166f, 4.697f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 308: // å¥¥å¦®å…‹è¥¿å¨…
+    case GOSSIP_ACTION_INFO_DEF + 308: // °ÂÄÝ¿ËÎ÷æ«
         player->TeleportTo(1, -4745.300293f, -3753.068604f, 50.219667f, 4.697f);
         break;
         /*
@@ -373,9 +373,9 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
     std::string code = "";
 
     recvData >> guid >> menuId >> gossipListId;
-    //è‡ªå®šä¹‰ä»£ç ---å¼€å§‹
+    //×Ô¶¨Òå´úÂë---¿ªÊ¼
     Item *pItem = _player->GetItemByGuid(guid);
-    //å¦‚æžœitemæ˜¯ç‚‰çŸ³,åˆ™return
+    //Èç¹ûitemÊÇÂ¯Ê¯,Ôòreturn
     if (pItem)
     {
         if (pItem->GetEntry() == 60000)
@@ -385,7 +385,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
             return;
         }
     }
-    //è‡ªå®šä¹‰ä»£ç ---ç»“æŸ
+    //×Ô¶¨Òå´úÂë---½áÊø
     if (!_player->PlayerTalkClass->GetGossipMenu().GetItem(gossipListId))
     {
         recvData.rfinish();
@@ -786,9 +786,19 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recvData)
 
 void WorldSession::HandleStandStateChangeOpcode(WorldPacket& recvData)
 {
-    // TC_LOG_DEBUG("network", "WORLD: Received CMSG_STANDSTATECHANGE"); -- too many spam in log at lags/debug stop
     uint32 animstate;
     recvData >> animstate;
+
+    switch (animstate)
+    {
+        case UNIT_STAND_STATE_STAND:
+        case UNIT_STAND_STATE_SIT:
+        case UNIT_STAND_STATE_SLEEP:
+        case UNIT_STAND_STATE_KNEEL:
+            break;
+        default:
+            return;
+    }
 
     _player->SetStandState(animstate);
 }
@@ -1149,13 +1159,13 @@ void WorldSession::HandleSetActionButtonOpcode(WorldPacket& recvData)
         GetPlayer()->addActionButton(button, ACTION_BUTTON_ACTION(packetData), ACTION_BUTTON_TYPE(packetData));
 }
 
-void WorldSession::HandleCompleteCinematic(WorldPacket& /*recvData*/)
+void WorldSession::HandleCompleteCinematic(WorldPackets::Misc::CompleteCinematic& /*packet*/)
 {
     // If player has sight bound to visual waypoint NPC we should remove it
     GetPlayer()->GetCinematicMgr()->EndCinematic();
 }
 
-void WorldSession::HandleNextCinematicCamera(WorldPacket& /*recvData*/)
+void WorldSession::HandleNextCinematicCamera(WorldPackets::Misc::NextCinematicCamera& /*packet*/)
 {
     // Sent by client when cinematic actually begun. So we begin the server side process
     GetPlayer()->GetCinematicMgr()->BeginCinematic();
@@ -1217,6 +1227,16 @@ void WorldSession::HandleMoveRootAck(WorldPacket& recvData)
                                               MovementInfo movementInfo;
                                               ReadMovementInfo(recvData, &movementInfo);
                                               */
+}
+
+void WorldSession::HandleCompleteMovie(WorldPackets::Misc::CompleteMovie& /*packet*/)
+{
+    uint32 movie = _player->GetMovie();
+    if (!movie)
+        return;
+
+    _player->SetMovie(0);
+    sScriptMgr->OnMovieComplete(_player, movie);
 }
 
 void WorldSession::HandleSetActionBarToggles(WorldPacket& recvData)
@@ -1313,36 +1333,22 @@ void WorldSession::HandleInspectHonorStatsOpcode(WorldPacket& recvData)
     SendPacket(&data);
 }
 
-void WorldSession::HandleWorldTeleportOpcode(WorldPacket& recvData)
+void WorldSession::HandleWorldTeleportOpcode(WorldPackets::Misc::WorldTeleport& worldTeleport)
 {
-    uint32 time;
-    uint32 mapid;
-    float PositionX;
-    float PositionY;
-    float PositionZ;
-    float Orientation;
-
-    recvData >> time;                                      // time in m.sec.
-    recvData >> mapid;
-    recvData >> PositionX;
-    recvData >> PositionY;
-    recvData >> PositionZ;
-    recvData >> Orientation;                               // o (3.141593 = 180 degrees)
-
-    TC_LOG_DEBUG("network", "WORLD: Received CMSG_WORLD_TELEPORT");
-
-    if (GetPlayer()->IsInFlight())
+    if (_player->IsInFlight())
     {
-        TC_LOG_DEBUG("network", "Player '%s' (GUID: %u) in flight, ignore worldport command.",
-            GetPlayer()->GetName().c_str(), GetPlayer()->GetGUID().GetCounter());
+        TC_LOG_DEBUG("network", "Player '%s' (%s) in flight, ignore worldport command.",
+            _player->GetName().c_str(), _player->GetGUID().ToString().c_str());
         return;
     }
 
-    TC_LOG_DEBUG("network", "CMSG_WORLD_TELEPORT: Player = %s, Time = %u, map = %u, x = %f, y = %f, z = %f, o = %f",
-        GetPlayer()->GetName().c_str(), time, mapid, PositionX, PositionY, PositionZ, Orientation);
+    WorldLocation loc(worldTeleport.MapID, worldTeleport.Pos);
+    loc.SetOrientation(worldTeleport.Facing);
+    TC_LOG_DEBUG("network", "CMSG_WORLD_TELEPORT: Player = %s, time = %u, map = %u, pos = %s",
+        _player->GetName().c_str(), worldTeleport.Time, worldTeleport.MapID, loc.ToString().c_str());
 
     if (HasPermission(rbac::RBAC_PERM_OPCODE_WORLD_TELEPORT))
-        GetPlayer()->TeleportTo(mapid, PositionX, PositionY, PositionZ, Orientation);
+        _player->TeleportTo(loc);
     else
         SendNotification(LANG_YOU_NOT_HAVE_PERMISSION);
 }

@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -220,7 +219,7 @@ class TC_GAME_API Object
 
         uint16 _fieldNotifyFlags;
 
-        virtual void AddToObjectUpdate() = 0;
+        virtual bool AddToObjectUpdate() = 0;
         virtual void RemoveFromObjectUpdate() = 0;
         void AddToObjectUpdateIfNeeded();
 
@@ -479,7 +478,7 @@ class TC_GAME_API WorldObject : public Object, public WorldLocation
 
         void BuildUpdate(UpdateDataMapType&) override;
 
-        void AddToObjectUpdate() override;
+        bool AddToObjectUpdate() override;
         void RemoveFromObjectUpdate() override;
 
         //relocation and visibility system functions

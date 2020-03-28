@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -18,9 +18,9 @@
 #ifndef TRINITY_BASE_ENCODING_HPP
 #define TRINITY_BASE_ENCODING_HPP
 
-#include "advstd.h"
 #include "Define.h"
 #include "Optional.h"
+#include <numeric>
 #include <string>
 #include <vector>
 
@@ -32,7 +32,7 @@ template <typename Encoding>
 struct GenericBaseEncoding
 {
     static constexpr std::size_t BITS_PER_CHAR = Encoding::BITS_PER_CHAR;
-    static constexpr std::size_t PAD_TO = advstd::lcm(8u, BITS_PER_CHAR);
+    static constexpr std::size_t PAD_TO = std::lcm(8u, BITS_PER_CHAR);
 
     static_assert(BITS_PER_CHAR < 8, "Encoding parameters are invalid");
 

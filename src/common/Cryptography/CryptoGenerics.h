@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -18,10 +18,10 @@
 #ifndef TRINITY_CRYPTO_GENERICS_HPP
 #define TRINITY_CRYPTO_GENERICS_HPP
 
-#include "advstd.h"
 #include "BigNumber.h"
 #include "Define.h"
 #include "Errors.h"
+#include <iterator>
 #include <vector>
 #include <openssl/rand.h>
 
@@ -35,7 +35,7 @@ namespace Trinity
             static typename Cipher::IV GenerateRandomIV()
             {
                 typename Cipher::IV iv;
-                int status = RAND_bytes(advstd::data(iv), advstd::size(iv));
+                int status = RAND_bytes(std::data(iv), std::size(iv));
                 ASSERT(status);
                 return iv;
             }
@@ -49,8 +49,8 @@ namespace Trinity
             template <typename C>
             static void SplitFromBack(std::vector<uint8>& data, C& tail)
             {
-                ASSERT(data.size() >= advstd::size(tail));
-                for (size_t i = 1, N = advstd::size(tail); i <= N; ++i)
+                ASSERT(data.size() >= std::size(tail));
+                for (size_t i = 1, N = std::size(tail); i <= N; ++i)
                 {
                     tail[N - i] = data.back();
                     data.pop_back();

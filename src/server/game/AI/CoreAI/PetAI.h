@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -47,6 +46,7 @@ class TC_GAME_API PetAI : public CreatureAI
         void ReceiveEmote(Player* player, uint32 textEmote) override;
         void JustEnteredCombat(Unit* who) override { EngagementStart(who); }
         void JustExitedCombat() override { EngagementOver(); }
+        void OnCharmed(bool isNew) override;
 
         // The following aren't used by the PetAI but need to be defined to override
         // default CreatureAI functions which interfere with the PetAI
