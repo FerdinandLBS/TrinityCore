@@ -380,6 +380,8 @@ Unit::Unit(bool isWorldObject) :
     _oldFactionId = 0;
     _isWalkingBeforeCharm = false;
     _instantCast = false;
+
+    _resetAssistances();
 }
 
 ////////////////////////////////////////////////////////////
@@ -10778,7 +10780,7 @@ bool Unit::InitTamedPet(Pet* pet, uint8 level, uint32 spell_id)
     bool isRewardAllowed = true;
     if (creature)
     {
-        isRewardAllowed = creature->IsDamageEnoughForLootingAndReward();
+        isRewardAllowed = creature->IsDamageEnoughForLootingAndReward() || (attacker->GetEntry() > 44000);
         if (!isRewardAllowed)
             creature->SetLootRecipient(nullptr);
     }
@@ -13516,4 +13518,15 @@ void Unit::_resetAssistances()
 }
 void Unit::_initAssistances() {
     _resetAssistances();
+}
+
+void Unit::DisengageWithTarget(Unit* who) {
+    if (!who)
+        return;
+
+    if (!IsEngagedBy(who))
+        return;
+
+    if (CanHaveThreatList())
+        m_threatManager.ClearThreat(who);
 }

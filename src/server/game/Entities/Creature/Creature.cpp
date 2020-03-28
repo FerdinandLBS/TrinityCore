@@ -294,6 +294,10 @@ void Creature::RemoveFromWorld()
 {
     if (IsInWorld())
     {
+        if (GetEntry() >= 45000) {
+            Unit* owner = GetOwner();
+            owner->_popAssistance(this);
+        }
         if (GetZoneScript())
             GetZoneScript()->OnCreatureRemove(this);
 
@@ -1240,8 +1244,11 @@ void Creature::SetLootRecipient(Unit* unit, bool withGroup)
         return;
     }
 
-    if (unit->GetTypeId() != TYPEID_PLAYER && !unit->IsVehicle())
-        return;
+    // Assistances
+    if (unit->GetEntry() < 44000) {
+        if (unit->GetTypeId() != TYPEID_PLAYER && !unit->IsVehicle())
+            return;
+    }
 
     Player* player = unit->GetCharmerOrOwnerPlayerOrPlayerItself();
     if (!player)                                             // normal creature, no player involved
@@ -2135,6 +2142,11 @@ void Creature::DespawnOrUnsummon(uint32 msTimeToDespawn /*= 0*/, Seconds forceRe
         summon->UnSummon(msTimeToDespawn);
     else
         ForcedDespawn(msTimeToDespawn, forceRespawnTimer);
+
+    if (GetEntry() >= 45000) {
+        Unit* owner = GetOwner();
+        owner->_popAssistance(this);
+    }
 }
 
 void Creature::LoadTemplateImmunities()

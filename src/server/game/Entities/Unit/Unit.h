@@ -1023,6 +1023,7 @@ class TC_GAME_API Unit : public WorldObject
         // - when the creature has no targets left, but the AI has not yet ceased engaged logic
         virtual bool IsEngaged() const { return IsInCombat(); }
         bool IsEngagedBy(Unit const* who) const { return CanHaveThreatList() ? IsThreatenedBy(who) : IsInCombatWith(who); }
+        void DisengageWithTarget(Unit* who);
         void EngageWithTarget(Unit* who); // Adds target to threat list if applicable, otherwise just sets combat state
         // Combat handling
         CombatManager& GetCombatManager() { return m_combatManager; }

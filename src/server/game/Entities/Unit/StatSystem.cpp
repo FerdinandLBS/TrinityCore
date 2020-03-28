@@ -1283,11 +1283,21 @@ void Guardian::UpdateArmor()
     if (IsPet())
         bonus_armor = float(CalculatePct(m_owner->GetArmor(), 35));
 
-    value  = GetFlatModifierValue(unitMod, BASE_VALUE);
-    value *= GetPctModifierValue(unitMod, BASE_PCT);
+    value = GetFlatModifierValue(unitMod, BASE_VALUE);
     value += GetStat(STAT_AGILITY) * 2.0f;
-    value += GetFlatModifierValue(unitMod, TOTAL_VALUE) + bonus_armor;
-    value *= GetPctModifierValue(unitMod, TOTAL_PCT);
+
+    if (m_owner->IsControlledByPlayer() && !IsPet()) {
+        float bonus = (m_owner->GetStat(STAT_STRENGTH) + m_owner->GetStat(STAT_AGILITY) + m_owner->GetStat(STAT_INTELLECT) + m_owner->GetStat(STAT_STAMINA) + m_owner->GetStat(STAT_SPIRIT))*2.0f;
+        if (HasSpell(86000)) {
+            bonus *= 3.25f;
+        }
+        value += bonus;
+    }
+    else {
+        value *= GetPctModifierValue(unitMod, BASE_PCT);
+        value += GetFlatModifierValue(unitMod, TOTAL_VALUE) + bonus_armor;
+        value *= GetPctModifierValue(unitMod, TOTAL_PCT);
+    }
 
     SetArmor(int32(value));
 }
@@ -1310,9 +1320,18 @@ void Guardian::UpdateMaxHealth()
     }
 
     float value = GetFlatModifierValue(unitMod, BASE_VALUE) + GetCreateHealth();
-    value *= GetPctModifierValue(unitMod, BASE_PCT);
-    value += GetFlatModifierValue(unitMod, TOTAL_VALUE) + stamina * multiplicator;
-    value *= GetPctModifierValue(unitMod, TOTAL_PCT);
+    if (GetEntry() >= 45000) {
+        value = GetStat(STAT_STAMINA)*multiplicator;
+        if (HasSpell(86001)) {
+            value *= 1.4f;
+        }
+        value += GetCreateHealth();
+    }
+    else {
+        value *= GetPctModifierValue(unitMod, BASE_PCT);
+        value += GetFlatModifierValue(unitMod, TOTAL_VALUE) + stamina * multiplicator;
+        value *= GetPctModifierValue(unitMod, TOTAL_PCT);
+    }
 
     SetMaxHealth((uint32)value);
 }

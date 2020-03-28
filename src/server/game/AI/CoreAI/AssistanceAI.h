@@ -46,6 +46,7 @@ private:
     void updateTimer(uint32 diff);
     void ResetPosition();
     bool isCaster();
+    void EngagementStart(Unit * who);
     bool AssistantsSpell(uint32 diff);
     bool miniPetAI(uint32 diff);
     void UseInstanceHealing();

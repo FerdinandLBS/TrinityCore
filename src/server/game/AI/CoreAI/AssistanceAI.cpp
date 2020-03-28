@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -231,7 +231,7 @@ bool AssistanceAI::miniPetAI(uint32 diff) {
 
 void AssistanceAI::JustDied(Unit* killer) {
     if (me->GetEntry() >= 45000) {
-        me->Yell("真倒霉.......", Language::LANG_COMMON);
+        me->Yell("???.......", Language::LANG_UNIVERSAL);
         me->DespawnOrUnsummon(3000);
         me->GetOwner()->_popAssistance(me);
     }
@@ -324,7 +324,13 @@ void AssistanceAI::ResetPosition()
         if (!(me->IsCharmed() || me->IsSummon() || me->IsGuardian())) {
             return;
         }
-        if (me->IsInCombat() || me->HasUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_FOLLOW_MOVE)) {
+
+        me->AttackStop();
+        me->SetTarget(ObjectGuid::Empty);
+        if (me->HasUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_FOLLOW_MOVE)) {
+            //return;
+        }
+        if (me->HasUnitMovementFlag(UNIT_STATE_FOLLOW)) {
             return;
         }
 
@@ -337,6 +343,7 @@ void AssistanceAI::ResetPosition()
         float dist = 1.0f;
         if (me->HasSpell(86001))
             dist *= 3;
+
         me->GetMotionMaster()->MoveFollow(me->GetCharmerOrOwner(), dist, me->GetFollowAngle());
         me->SetUnitMovementFlags(UNIT_STATE_FOLLOW);
         me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
@@ -356,8 +363,16 @@ bool AssistanceAI::isCaster()
     return false;
 }
 
+void AssistanceAI::EngagementStart(Unit* who) {
+    if (who->GetEntry() == 36954) {
+        me->DisengageWithTarget(who);
+    }
+}
+
 void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
 {
+    bool isTargetChanged = false;
+
     // update spells cool down
     updateTimer(diff);
 
@@ -372,11 +387,12 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
     if (owner) {
         Unit* ov = owner->GetVictim();
         if (victim == nullptr || (victim != ov && ov)) {
+            isTargetChanged = true;
             victim = ov;
         }
     }
-    if (victim) {
-        if (!me->GetTarget() && victim != me->GetVictim()) {
+    if (victim && victim->GetEntry() != 36954) {
+        if ((!me->GetTarget() && victim != me->GetVictim()) || isTargetChanged == true) {
             if (isCaster()) {
                 // Set our target
 
@@ -385,7 +401,7 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
                 me->GetMotionMaster()->Clear();
             }
             else {
-                if (AIFlag == AI_ACTION_FLAG::AI_ACTION_NONE)
+                if (AIFlag == AI_ACTION_FLAG::AI_ACTION_NONE || isTargetChanged)
                     AttackStart(victim);
             }
         }

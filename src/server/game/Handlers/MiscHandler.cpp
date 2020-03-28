@@ -1,20 +1,20 @@
-/*
- * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation; either version 2 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+﻿/*
+* Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
+* Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+*
+* This program is free software; you can redistribute it and/or modify it
+* under the terms of the GNU General Public License as published by the
+* Free Software Foundation; either version 2 of the License, or (at your
+* option) any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along
+* with this program. If not, see <http://www.gnu.org/licenses/>.
+*/
 
 #include "WorldSession.h"
 #include "AccountMgr.h"
@@ -53,6 +53,10 @@
 #include "WorldPacket.h"
 #include <cstdarg>
 #include <zlib.h>
+#include "ScriptedGossip.h"
+#include "Item.h"
+
+#pragma execution_character_set("utf-8")
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
 {
@@ -66,11 +70,11 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
     if (GetPlayer()->HasAuraType(SPELL_AURA_PREVENT_RESURRECTION))
         return; // silently return, client should display the error by itself
 
-    // the world update order is sessions, players, creatures
-    // the netcode runs in parallel with all of these
-    // creatures can kill players
-    // so if the server is lagging enough the player can
-    // release spirit after he's killed but before he is updated
+                // the world update order is sessions, players, creatures
+                // the netcode runs in parallel with all of these
+                // creatures can kill players
+                // so if the server is lagging enough the player can
+                // release spirit after he's killed but before he is updated
     if (GetPlayer()->getDeathState() == JUST_DIED)
     {
         TC_LOG_DEBUG("network", "HandleRepopRequestOpcode: got request after player %s(%d) was killed and before he was updated",
@@ -85,6 +89,280 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recvData)
     GetPlayer()->RepopAtGraveyard();
 }
 
+void BuildSpecailTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+
+    AddGossipItemFor(player, 4, "黑石塔 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildRaidTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 4, "熔火之心(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 301);
+    AddGossipItemFor(player, 4, "黑翼之巢(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 302);
+    AddGossipItemFor(player, 4, "安其拉(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 303);
+    AddGossipItemFor(player, 4, "祖尔格拉布(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 304);
+    AddGossipItemFor(player, 4, "祖阿曼(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 305);
+    AddGossipItemFor(player, 4, "卡拉赞(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 306);
+    AddGossipItemFor(player, 4, "奥妮克希亚巢穴(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 307);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildNorthlandTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 13, "达拉然", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 101);
+    AddGossipItemFor(player, 9, "乌特加德堡垒", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 104);
+    AddGossipItemFor(player, 9, "魔枢", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 103);
+    AddGossipItemFor(player, 9, "龙眠神殿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 102);
+    AddGossipItemFor(player, 9, "古代王国", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 105);
+    AddGossipItemFor(player, 9, "达克萨隆要塞", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 111);
+    AddGossipItemFor(player, 9, "古达克", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 106);
+    AddGossipItemFor(player, 9, "风暴群山", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 107);
+    AddGossipItemFor(player, 9, "纳克萨玛斯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 110);
+    AddGossipItemFor(player, 9, "银色比武场", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 108);
+    AddGossipItemFor(player, 9, "冰冠堡垒", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 109);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildOutlandTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 13, "沙塔斯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 201);
+    AddGossipItemFor(player, 9, "地狱火堡垒", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 202);
+    AddGossipItemFor(player, 9, "盘牙水库", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 203);
+    AddGossipItemFor(player, 9, "奥金顿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 204);
+    AddGossipItemFor(player, 9, "风暴战舰", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 205);
+    AddGossipItemFor(player, 9, "戈鲁尔巢穴", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 206);
+    AddGossipItemFor(player, 9, "黑暗神庙", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 207);
+    AddGossipItemFor(player, 9, "时光之穴", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 208);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
+{
+    PlayerMenu* menu = player->PlayerTalkClass;
+    menu->ClearMenus();
+    AddGossipItemFor(player, 4, "怒焰裂谷 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
+    AddGossipItemFor(player, 4, "死亡矿井 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
+    AddGossipItemFor(player, 4, "哀嚎洞穴 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
+    AddGossipItemFor(player, 4, "影牙城堡 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
+    AddGossipItemFor(player, 4, "黑暗深渊 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
+    AddGossipItemFor(player, 4, "暴风城监狱 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
+    AddGossipItemFor(player, 4, "诺莫瑞根 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
+    AddGossipItemFor(player, 4, "剃刀沼泽 25 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
+    AddGossipItemFor(player, 4, "血色修道院 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
+    AddGossipItemFor(player, 4, "剃刀高地 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
+    AddGossipItemFor(player, 4, "奥达曼 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
+    AddGossipItemFor(player, 4, "祖尔法拉克 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
+    AddGossipItemFor(player, 4, "玛拉顿 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
+    AddGossipItemFor(player, 4, "厄运之槌 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
+    AddGossipItemFor(player, 4, "通灵学院 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
+    AddGossipItemFor(player, 4, "斯坦索姆 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
+    AddGossipItemFor(player, 4, "黑石深渊 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
+    AddGossipItemFor(player, 4, "沉没的神庙 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
+    AddGossipItemFor(player, 4, "黑石塔 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
+
+    SendGossipMenuFor(player, 4, item->GetGUID());
+}
+
+void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
+{
+    switch (action) {
+    case GOSSIP_ACTION_INFO_DEF + 1: // StormWind City
+        player->TeleportTo(0, -8730.59f, 722.68f, 101.7f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 2: // TLB
+        player->TeleportTo(0, -4799.36f, -1107.36f, 501.7f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 3: // DNSS
+        player->TeleportTo(1, 9961, 2055, 1329, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 4: // 埃索达
+        player->TeleportTo(530, -3998.3f, -11864.1, 1, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 5: // 奥格瑞玛
+        player->TeleportTo(1, 1676.25f, -4313.45f, 62.0f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 6: // 雷霆崖
+        player->TeleportTo(1, -1150.877197f, 15.459573f, 180.088318f, 1.300810f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 7: // 幽暗城
+        player->TeleportTo(0, 1596.05835f, 240.41658f, -13.89129f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 8: // 银月城
+        player->TeleportTo(530, 9930.45f, -7129.1f, 48, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 9: // 棘齿城
+        player->TeleportTo(1, -977, -3788, 6, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 10:
+        player->TeleportTo(0, -14302, 518, 9, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 11:
+        player->TeleportTo(1, -7156.56f, -3825.1f, 8.7f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 12: //外域
+        CloseGossipMenuFor(player);
+        BuildOutlandTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 13: // 诺森德
+        CloseGossipMenuFor(player);
+        BuildNorthlandTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 14: // GM岛 
+        player->TeleportTo(1, 16222.1, 16252.1, 12.5872, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 15: // 5人本
+        CloseGossipMenuFor(player);
+        BuildDungeonTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 16: // 团队本
+        CloseGossipMenuFor(player);
+        BuildRaidTeleport(player, item, sender);
+        return;
+    case GOSSIP_ACTION_INFO_DEF + 51: // 怒焰裂谷
+        player->TeleportTo(389, 3.8, -14.8, -17, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 52: // 矿井
+        player->TeleportTo(36, -16, -383, 62, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 53: // 哀嚎
+        player->TeleportTo(43, -163.49f, 132.89f, -73.66, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 54: // 影牙
+        player->TeleportTo(33, -229.1f, 2109.17f, 77, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 55: // 深渊
+        player->TeleportTo(48, -151.88f, 106.95f, -39.3f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 56: // 监狱
+        player->TeleportTo(34, 54.2f, 0.28f, -18, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 57: // 诺莫瑞根
+        player->TeleportTo(90, -327.5f, -4.7f, -152.3f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 58: // 血色
+        player->TeleportTo(0, 2894.34f, -809.55f, 160.33f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 59: // 剃刀沼泽
+        player->TeleportTo(47, 1943, 1544.63f, 82, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 60: // 玛拉顿
+        player->TeleportTo(349, 1019.69f, -458.3f, -43, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 61: // 奥达曼
+        player->TeleportTo(70, -226.8, 49.1f, -45.9f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 62: // 厄运
+        player->TeleportTo(429, -201.11f, -328.66f, -2.7f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 63: // 通灵学院
+        player->TeleportTo(289, 196.39f, 127, 135, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 64: // 剃刀高地
+        player->TeleportTo(129, 2592.55f, 1107.5f, 51.5f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 65: // 斯坦索姆
+        player->TeleportTo(329, 3394.13f, -3380.16f, 143.0f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 66: // 祖尔法拉克
+        player->TeleportTo(209, 1213.52f, 841.59f, 9, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 67: // 黑石深渊
+        player->TeleportTo(230, 458.3f, 26.5f, -70.64f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 68: // 沉没的神庙
+        player->TeleportTo(109, -319.23f, 99.9f, -131.85f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 69: // 黑石塔
+        player->TeleportTo(229, 78.5f, -225.0f, 50.0f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 101: // 达拉燃
+        player->TeleportTo(571, 5797, 795, 664, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 102: // 龙眠神殿
+        player->TeleportTo(571, 3546.607178f, 273.218842f, 342.722f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 103: // 魔枢
+        player->TeleportTo(571, 3831.737061f, 6960.383789f, 104.784271f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 104: // 乌特加德堡垒
+        player->TeleportTo(571, 1260.176636f, -4843.805664f, 215.763993f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 105: // 古代王国
+        player->TeleportTo(571, 3695.932129f, 2143.285889f, 34.147270f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 106: // 古达克
+        player->TeleportTo(571, 6938.497559f, -4452.765137f, 450.868896f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 107: // 风暴群山
+        player->TeleportTo(571, 8949.208008f, -1266.415894f, 1025.499391f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 108: // 银色比武场
+        player->TeleportTo(571, 8486.941406f, 775.859863f, 558.568299f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 109: // 冰冠堡垒
+        player->TeleportTo(571, 5864.67f, 2169.83f, 636.1f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 110: // 纳克萨玛斯
+        player->TeleportTo(571, 3666.089844f, -1269.738403f, 243.508927f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 111: // 达克萨隆要塞
+        player->TeleportTo(571, 4772.635742f, -2046.703125f, 238.28464f, 0.061439f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 201: // 沙塔斯
+        player->TeleportTo(530, -1859.95f, 5438.85f, -10.3f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 202: // 地狱火
+        player->TeleportTo(530, -321.64f, 3082.49f, 32.6f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 203: // 水库
+        player->TeleportTo(530, 764.034058f, 6866.363770f, -68.277512f, 6.266417f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 204: // 奥金顿
+        player->TeleportTo(530, -3377.06f, 4954.24f, -66.5f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 205: // 风暴战舰
+        player->TeleportTo(530, 3101.006592f, 1537.525879f, 190.31f, 4.649131f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 206: // 格鲁尔
+        player->TeleportTo(565, 62.784199f, 35.462002f, -3.983500f, 1.418440f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 207: // 黑庙
+        player->TeleportTo(564, 96.45f, 1002.35f, -86.8f, 6);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 208: // 时光之穴
+        player->TeleportTo(1, -8509.349606f, -4356.310059f, -208.358994f, 6);
+        break;
+        // Raid telepot
+    case GOSSIP_ACTION_INFO_DEF + 301: // 熔火之心
+        player->TeleportTo(409, 1087.588f, -477.341f, -107.0f, 0.786652f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 305: // 祖阿曼
+        player->TeleportTo(530, 6832.783203f, -7858.009766f, 163.976166f, 4.697f);
+        break;
+    case GOSSIP_ACTION_INFO_DEF + 308: // 奥妮克西娅
+        player->TeleportTo(1, -4745.300293f, -3753.068604f, 50.219667f, 4.697f);
+        break;
+        /*
+        case GOSSIP_ACTION_INFO_DEF + 64: //
+        player->TeleportTo(, f, f, f, 6);
+        break;*/
+    }
+    CloseGossipMenuFor(player);
+}
+
 void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
 {
     TC_LOG_DEBUG("network", "WORLD: CMSG_GOSSIP_SELECT_OPTION");
@@ -95,7 +373,19 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
     std::string code = "";
 
     recvData >> guid >> menuId >> gossipListId;
-
+    //自定义代码---开始
+    Item *pItem = _player->GetItemByGuid(guid);
+    //如果item是炉石,则return
+    if (pItem)
+    {
+        if (pItem->GetEntry() == 60000)
+        {
+            GossipSelect_Item(_player, pItem, _player->PlayerTalkClass->GetGossipOptionSender(gossipListId), _player->PlayerTalkClass->GetGossipOptionAction(gossipListId));
+            recvData.rfinish();
+            return;
+        }
+    }
+    //自定义代码---结束
     if (!_player->PlayerTalkClass->GetGossipMenu().GetItem(gossipListId))
     {
         recvData.rfinish();
@@ -244,7 +534,7 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recvData)
 
     uint32 team = _player->GetTeam();
 
-    uint32 gmLevelInWhoList  = sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_WHO_LIST);
+    uint32 gmLevelInWhoList = sWorld->getIntConfig(CONFIG_GM_LEVEL_IN_WHO_LIST);
     uint32 displayCount = 0;
 
     WorldPacket data(SMSG_WHO, 500);                      // guess size
@@ -360,7 +650,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recvData*/)
         DoLootRelease(lguid);
 
     bool instantLogout = (GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) && !GetPlayer()->IsInCombat()) ||
-                         GetPlayer()->IsInFlight() || HasPermission(rbac::RBAC_PERM_INSTANT_LOGOUT);
+        GetPlayer()->IsInFlight() || HasPermission(rbac::RBAC_PERM_INSTANT_LOGOUT);
 
     /// TODO: Possibly add RBAC permission to log out in combat
     bool canLogoutInCombat = GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING);
@@ -373,7 +663,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recvData*/)
     else if (GetPlayer()->duel || GetPlayer()->HasAura(9454)) // is dueling or frozen by GM via freeze command
         reason = 2;                                         // FIXME - Need the correct value
 
-    WorldPacket data(SMSG_LOGOUT_RESPONSE, 1+4);
+    WorldPacket data(SMSG_LOGOUT_RESPONSE, 1 + 4);
     data << uint32(reason);
     data << uint8(instantLogout);
     SendPacket(&data);
@@ -397,7 +687,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recvData*/)
         if (GetPlayer()->GetStandState() == UNIT_STAND_STATE_STAND)
             GetPlayer()->SetStandState(UNIT_STAND_STATE_SIT);
 
-        data.Initialize(SMSG_FORCE_MOVE_ROOT, (8+4));    // guess size
+        data.Initialize(SMSG_FORCE_MOVE_ROOT, (8 + 4));    // guess size
         data << GetPlayer()->GetPackGUID();
         data << (uint32)2;
         SendPacket(&data);
@@ -591,15 +881,15 @@ void WorldSession::HandleResurrectResponseOpcode(WorldPacket& recvData)
 void WorldSession::SendAreaTriggerMessage(char const* Text, ...)
 {
     va_list ap;
-    char szStr [1024];
+    char szStr[1024];
     szStr[0] = '\0';
 
     va_start(ap, Text);
     vsnprintf(szStr, 1024, Text, ap);
     va_end(ap);
 
-    uint32 length = strlen(szStr)+1;
-    WorldPacket data(SMSG_AREA_TRIGGER_MESSAGE, 4+length);
+    uint32 length = strlen(szStr) + 1;
+    WorldPacket data(SMSG_AREA_TRIGGER_MESSAGE, 4 + length);
     data << length;
     data << szStr;
     SendPacket(&data);
@@ -677,60 +967,60 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recvData)
             bool reviveAtTrigger = false; // should we revive the player if he is trying to enter the correct instance?
             switch (denyReason)
             {
-                case Map::CANNOT_ENTER_NO_ENTRY:
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter map with id %d which has no entry", player->GetName().c_str(), at->target_mapId);
-                    break;
-                case Map::CANNOT_ENTER_UNINSTANCED_DUNGEON:
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter dungeon map %d but no instance template was found", player->GetName().c_str(), at->target_mapId);
-                    break;
-                case Map::CANNOT_ENTER_DIFFICULTY_UNAVAILABLE:
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter instance map %d but the requested difficulty was not found", player->GetName().c_str(), at->target_mapId);
-                    if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
-                        player->SendTransferAborted(entry->MapID, TRANSFER_ABORT_DIFFICULTY, player->GetDifficulty(entry->IsRaid()));
-                    break;
-                case Map::CANNOT_ENTER_NOT_IN_RAID:
+            case Map::CANNOT_ENTER_NO_ENTRY:
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter map with id %d which has no entry", player->GetName().c_str(), at->target_mapId);
+                break;
+            case Map::CANNOT_ENTER_UNINSTANCED_DUNGEON:
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter dungeon map %d but no instance template was found", player->GetName().c_str(), at->target_mapId);
+                break;
+            case Map::CANNOT_ENTER_DIFFICULTY_UNAVAILABLE:
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter instance map %d but the requested difficulty was not found", player->GetName().c_str(), at->target_mapId);
+                if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
+                    player->SendTransferAborted(entry->MapID, TRANSFER_ABORT_DIFFICULTY, player->GetDifficulty(entry->IsRaid()));
+                break;
+            case Map::CANNOT_ENTER_NOT_IN_RAID:
+            {
+                WorldPacket data(SMSG_RAID_GROUP_ONLY, 4 + 4);
+                data << uint32(0);
+                data << uint32(2); // You must be in a raid group to enter this instance.
+                player->SendDirectMessage(&data);
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' must be in a raid group to enter instance map %d", player->GetName().c_str(), at->target_mapId);
+                reviveAtTrigger = true;
+                break;
+            }
+            case Map::CANNOT_ENTER_CORPSE_IN_DIFFERENT_INSTANCE:
+            {
+                WorldPacket data(SMSG_CORPSE_NOT_IN_INSTANCE);
+                player->SendDirectMessage(&data);
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' does not have a corpse in instance map %d and cannot enter", player->GetName().c_str(), at->target_mapId);
+                break;
+            }
+            case Map::CANNOT_ENTER_INSTANCE_BIND_MISMATCH:
+                if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
                 {
-                    WorldPacket data(SMSG_RAID_GROUP_ONLY, 4 + 4);
-                    data << uint32(0);
-                    data << uint32(2); // You must be in a raid group to enter this instance.
-                    player->SendDirectMessage(&data);
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' must be in a raid group to enter instance map %d", player->GetName().c_str(), at->target_mapId);
-                    reviveAtTrigger = true;
-                    break;
+                    char const* mapName = entry->name[player->GetSession()->GetSessionDbcLocale()];
+                    TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map '%s' because their permanent bind is incompatible with their group's", player->GetName().c_str(), mapName);
+                    // is there a special opcode for this?
+                    // @todo figure out how to get player localized difficulty string (e.g. "10 player", "Heroic" etc)
+                    ChatHandler(player->GetSession()).PSendSysMessage(player->GetSession()->GetTrinityString(LANG_INSTANCE_BIND_MISMATCH), mapName);
                 }
-                case Map::CANNOT_ENTER_CORPSE_IN_DIFFERENT_INSTANCE:
-                {
-                    WorldPacket data(SMSG_CORPSE_NOT_IN_INSTANCE);
-                    player->SendDirectMessage(&data);
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' does not have a corpse in instance map %d and cannot enter", player->GetName().c_str(), at->target_mapId);
-                    break;
-                }
-                case Map::CANNOT_ENTER_INSTANCE_BIND_MISMATCH:
-                    if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
-                    {
-                        char const* mapName = entry->name[player->GetSession()->GetSessionDbcLocale()];
-                        TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map '%s' because their permanent bind is incompatible with their group's", player->GetName().c_str(), mapName);
-                        // is there a special opcode for this?
-                        // @todo figure out how to get player localized difficulty string (e.g. "10 player", "Heroic" etc)
-                        ChatHandler(player->GetSession()).PSendSysMessage(player->GetSession()->GetTrinityString(LANG_INSTANCE_BIND_MISMATCH), mapName);
-                    }
-                    reviveAtTrigger = true;
-                    break;
-                case Map::CANNOT_ENTER_TOO_MANY_INSTANCES:
-                    player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_TOO_MANY_INSTANCES);
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map %d because he has exceeded the maximum number of instances per hour.", player->GetName().c_str(), at->target_mapId);
-                    reviveAtTrigger = true;
-                    break;
-                case Map::CANNOT_ENTER_MAX_PLAYERS:
-                    player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_MAX_PLAYERS);
-                    reviveAtTrigger = true;
-                    break;
-                case Map::CANNOT_ENTER_ZONE_IN_COMBAT:
-                    player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_ZONE_IN_COMBAT);
-                    reviveAtTrigger = true;
-                    break;
-                default:
-                    break;
+                reviveAtTrigger = true;
+                break;
+            case Map::CANNOT_ENTER_TOO_MANY_INSTANCES:
+                player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_TOO_MANY_INSTANCES);
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map %d because he has exceeded the maximum number of instances per hour.", player->GetName().c_str(), at->target_mapId);
+                reviveAtTrigger = true;
+                break;
+            case Map::CANNOT_ENTER_MAX_PLAYERS:
+                player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_MAX_PLAYERS);
+                reviveAtTrigger = true;
+                break;
+            case Map::CANNOT_ENTER_ZONE_IN_COMBAT:
+                player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_ZONE_IN_COMBAT);
+                reviveAtTrigger = true;
+                break;
+            default:
+                break;
             }
 
             if (reviveAtTrigger) // check if the player is touching the areatrigger leading to the map his corpse is on
@@ -769,7 +1059,7 @@ void WorldSession::HandleUpdateAccountData(WorldPacket& recvData)
     {
         SetAccountData(AccountDataType(type), 0, "");
 
-        WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA_COMPLETE, 4+4);
+        WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA_COMPLETE, 4 + 4);
         data << uint32(type);
         data << uint32(0);
         SendPacket(&data);
@@ -802,7 +1092,7 @@ void WorldSession::HandleUpdateAccountData(WorldPacket& recvData)
 
     SetAccountData(AccountDataType(type), timestamp, adata);
 
-    WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA_COMPLETE, 4+4);
+    WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA_COMPLETE, 4 + 4);
     data << uint32(type);
     data << uint32(0);
     SendPacket(&data);
@@ -837,7 +1127,7 @@ void WorldSession::HandleRequestAccountData(WorldPacket& recvData)
 
     dest.resize(destSize);
 
-    WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA, 8+4+4+4+destSize);
+    WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA, 8 + 4 + 4 + 4 + destSize);
     data << uint64(_player ? _player->GetGUID() : ObjectGuid::Empty);
     data << uint32(type);                                   // type (0-7)
     data << uint32(adata->Time);                            // unix time
@@ -883,50 +1173,50 @@ void WorldSession::HandleMoveUnRootAck(WorldPacket& recvData)
 {
     // no used
     recvData.rfinish();                       // prevent warnings spam
-/*
-    uint64 guid;
-    recvData >> guid;
+                                              /*
+                                              uint64 guid;
+                                              recvData >> guid;
 
-    // now can skip not our packet
-    if (_player->GetGUID() != guid)
-    {
-        recvData.rfinish();                   // prevent warnings spam
-        return;
-    }
+                                              // now can skip not our packet
+                                              if (_player->GetGUID() != guid)
+                                              {
+                                              recvData.rfinish();                   // prevent warnings spam
+                                              return;
+                                              }
 
-    TC_LOG_DEBUG("network", "WORLD: CMSG_FORCE_MOVE_UNROOT_ACK");
+                                              TC_LOG_DEBUG("network", "WORLD: CMSG_FORCE_MOVE_UNROOT_ACK");
 
-    recvData.read_skip<uint32>();                          // unk
+                                              recvData.read_skip<uint32>();                          // unk
 
-    MovementInfo movementInfo;
-    movementInfo.guid = guid;
-    ReadMovementInfo(recvData, &movementInfo);
-    recvData.read_skip<float>();                           // unk2
-*/
+                                              MovementInfo movementInfo;
+                                              movementInfo.guid = guid;
+                                              ReadMovementInfo(recvData, &movementInfo);
+                                              recvData.read_skip<float>();                           // unk2
+                                              */
 }
 
 void WorldSession::HandleMoveRootAck(WorldPacket& recvData)
 {
     // no used
     recvData.rfinish();                       // prevent warnings spam
-/*
-    uint64 guid;
-    recvData >> guid;
+                                              /*
+                                              uint64 guid;
+                                              recvData >> guid;
 
-    // now can skip not our packet
-    if (_player->GetGUID() != guid)
-    {
-        recvData.rfinish();                   // prevent warnings spam
-        return;
-    }
+                                              // now can skip not our packet
+                                              if (_player->GetGUID() != guid)
+                                              {
+                                              recvData.rfinish();                   // prevent warnings spam
+                                              return;
+                                              }
 
-    TC_LOG_DEBUG("network", "WORLD: CMSG_FORCE_MOVE_ROOT_ACK");
+                                              TC_LOG_DEBUG("network", "WORLD: CMSG_FORCE_MOVE_ROOT_ACK");
 
-    recvData.read_skip<uint32>();                          // unk
+                                              recvData.read_skip<uint32>();                          // unk
 
-    MovementInfo movementInfo;
-    ReadMovementInfo(recvData, &movementInfo);
-*/
+                                              MovementInfo movementInfo;
+                                              ReadMovementInfo(recvData, &movementInfo);
+                                              */
 }
 
 void WorldSession::HandleSetActionBarToggles(WorldPacket& recvData)
@@ -978,7 +1268,7 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recvData)
 
     uint32 talent_points = 0x47;
     uint32 guid_size = player->GetPackGUID().size();
-    WorldPacket data(SMSG_INSPECT_TALENT, guid_size+4+talent_points);
+    WorldPacket data(SMSG_INSPECT_TALENT, guid_size + 4 + talent_points);
     data << player->GetPackGUID();
 
     if (GetPlayer()->CanBeGameMaster() || sWorld->getIntConfig(CONFIG_TALENTS_INSPECTING) + (GetPlayer()->GetTeamId() == player->GetTeamId()) > 1)
@@ -1013,7 +1303,7 @@ void WorldSession::HandleInspectHonorStatsOpcode(WorldPacket& recvData)
     if (GetPlayer()->IsValidAttackTarget(player))
         return;
 
-    WorldPacket data(MSG_INSPECT_HONOR_STATS, 8+1+4*4);
+    WorldPacket data(MSG_INSPECT_HONOR_STATS, 8 + 1 + 4 * 4);
     data << uint64(player->GetGUID());
     data << uint8(player->GetHonorPoints());
     data << uint32(player->GetUInt32Value(PLAYER_FIELD_KILLS));
@@ -1069,7 +1359,7 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recvData)
         return;
     }
 
-    if (charname.empty() || !normalizePlayerName (charname))
+    if (charname.empty() || !normalizePlayerName(charname))
     {
         SendNotification(LANG_NEED_CHARACTER_NAME);
         return;
@@ -1110,7 +1400,7 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recvData)
 
     std::string msg = charname + "'s " + "account is " + acc + ", e-mail: " + email + ", last ip: " + lastip;
 
-    WorldPacket data(SMSG_WHOIS, msg.size()+1);
+    WorldPacket data(SMSG_WHOIS, msg.size() + 1);
     data << msg;
     SendPacket(&data);
 
@@ -1133,18 +1423,18 @@ void WorldSession::HandleComplainOpcode(WorldPacket& recvData)
     recvData >> spammer_guid;                              // player guid
     switch (spam_type)
     {
-        case 0:
-            recvData >> unk1;                              // const 0
-            recvData >> unk2;                              // probably mail id
-            recvData >> unk3;                              // const 0
-            break;
-        case 1:
-            recvData >> unk1;                              // probably language
-            recvData >> unk2;                              // message type?
-            recvData >> unk3;                              // probably channel id
-            recvData >> unk4;                              // time
-            recvData >> description;                       // spam description string (messagetype, channel name, player name, message)
-            break;
+    case 0:
+        recvData >> unk1;                              // const 0
+        recvData >> unk2;                              // probably mail id
+        recvData >> unk3;                              // const 0
+        break;
+    case 1:
+        recvData >> unk1;                              // probably language
+        recvData >> unk2;                              // message type?
+        recvData >> unk3;                              // probably channel id
+        recvData >> unk4;                              // time
+        recvData >> description;                       // spam description string (messagetype, channel name, player name, message)
+        break;
     }
 
     // NOTE: all chat messages from this spammer automatically ignored by spam reporter until logout in case chat spam.
@@ -1167,13 +1457,13 @@ void WorldSession::HandleRealmSplitOpcode(WorldPacket& recvData)
     std::string split_date = "01/01/01";
     recvData >> unk;
 
-    WorldPacket data(SMSG_REALM_SPLIT, 4+4+split_date.size()+1);
+    WorldPacket data(SMSG_REALM_SPLIT, 4 + 4 + split_date.size() + 1);
     data << unk;
     data << uint32(0x00000000);                             // realm split state
-    // split states:
-    // 0x0 realm normal
-    // 0x1 realm split
-    // 0x2 realm split pending
+                                                            // split states:
+                                                            // 0x0 realm normal
+                                                            // 0x1 realm split
+                                                            // 0x2 realm split pending
     data << split_date;
     SendPacket(&data);
     //TC_LOG_DEBUG("response sent %u", unk);
@@ -1213,7 +1503,7 @@ void WorldSession::HandleSetTitleOpcode(WorldPacket& recvData)
     // -1 at none
     if (title > 0 && title < MAX_TITLE_INDEX)
     {
-       if (!GetPlayer()->HasTitle(title))
+        if (!GetPlayer()->HasTitle(title))
             return;
     }
     else
