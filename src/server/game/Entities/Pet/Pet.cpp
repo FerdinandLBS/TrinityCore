@@ -1075,24 +1075,21 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                 }
                 default:
                 {
-                    /* ToDo: Check what 5f5d2028 broke/fixed and how much of Creature::UpdateLevelDependantStats()
-                     * should be copied here (or moved to another method or if that function should be called here
-                     * or not just for this default case)
-                     */
-                    CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(petlevel, cinfo->unit_class);
-                    float basedamage = stats->GenerateBaseDamage(cinfo);
+                    if (GetEntry() < 44000) {
+                        /* ToDo: Check what 5f5d2028 broke/fixed and how much of Creature::UpdateLevelDependantStats()
+                         * should be copied here (or moved to another method or if that function should be called here
+                         * or not just for this default case)
+                         */
+                        CreatureBaseStats const* stats = sObjectMgr->GetCreatureBaseStats(petlevel, cinfo->unit_class);
+                        float basedamage = stats->GenerateBaseDamage(cinfo);
 
-                    float weaponBaseMinDamage = basedamage;
-                    float weaponBaseMaxDamage = basedamage * 1.5f;
+                        float weaponBaseMinDamage = basedamage;
+                        float weaponBaseMaxDamage = basedamage * 1.5f;
 
-                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
-                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
-                    break;
-                }
-                default:
-                {
-                    if (GetEntry() < 44000)
+                        SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, weaponBaseMinDamage);
+                        SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, weaponBaseMaxDamage);
                         break;
+                    }
 
                     Unit* owner = GetOwner();
                     if (!owner->IsCharmedOwnedByPlayerOrPlayer()) {
@@ -1103,34 +1100,30 @@ bool Guardian::InitStatsForLevel(uint8 petlevel)
                     float intl = owner->GetStat(STAT_INTELLECT);
                     float agi = owner->GetStat(STAT_AGILITY);
                     float sta = owner->GetStat(STAT_STAMINA);
+                    float dmgBonus;
                     float armor;
 
                     if (str > intl)
                         if (str > agi) stat = str; else stat = agi;
                     else
                         if (intl > agi) stat = intl; else stat = agi;
-                    armor = stat * 3.0f + sta * 2;
-                    if (HasSpell(86000)) {
-                        armor *= 2;
-                    }
-                    SetCreateHealth(owner->GetMaxHealth() - sta * 10);
+                    armor = (stat * 3.0f + sta * 2)*m_creatureInfo->ModArmor;
+                    dmgBonus = stat * m_creatureInfo->ModDamage;
 
+                    SetCreateHealth(owner->GetMaxHealth() - ((sta -20)* 10+20));
                     SetStatFlatModifier(UNIT_MOD_ARMOR, BASE_VALUE, armor);
                     SetStatFlatModifier(UNIT_MOD_STAT_STAMINA, BASE_VALUE, sta);
                     SetStatFlatModifier(UNIT_MOD_STAT_STRENGTH, BASE_VALUE, stat);
                     SetStatFlatModifier(UNIT_MOD_STAT_AGILITY, BASE_VALUE, stat);
                     SetStatFlatModifier(UNIT_MOD_STAT_INTELLECT, BASE_VALUE, stat);
                     SetStatFlatModifier(UNIT_MOD_STAT_SPIRIT, BASE_VALUE, stat);
-                    SetFollowAngle(getSpecialFollowAngle(this));
-                    if (GetEntry() >= 45000) {
-                        SetBonusDamage(int32(stat));
-                        owner->_pushAssistance(this);
-                    }
-                    else
-                        SetBonusDamage(int32(stat) / 2);
 
-                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(stat));
-                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float(stat));
+                    SetFollowAngle(getSpecialFollowAngle(this));
+
+                    SetBonusDamage(int32(dmgBonus));
+
+                    SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, dmgBonus);
+                    SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, dmgBonus);
                 }
             }
             break;

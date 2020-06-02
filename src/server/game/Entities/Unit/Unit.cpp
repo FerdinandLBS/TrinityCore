@@ -382,8 +382,6 @@ Unit::Unit(bool isWorldObject) :
     _oldFactionId = 0;
     _isWalkingBeforeCharm = false;
     _instantCast = false;
-
-    _resetAssistances();
 }
 
 ////////////////////////////////////////////////////////////
@@ -10883,7 +10881,7 @@ bool Unit::InitTamedPet(Pet* pet, uint8 level, uint32 spell_id)
     }
 
     // Do KILL and KILLED procs. KILL proc is called only for the unit who landed the killing blow (and its owner - for pets and totems) regardless of who tapped the victim
-    if (attacker && (attacker->IsPet() || attacker->IsTotem()))
+    if (attacker && (attacker->IsPet() || attacker->IsTotem() || attacker->GetEntry() >= 45000))
     {
         // proc only once for victim
         if (Unit* owner = attacker->GetOwner())
@@ -13501,52 +13499,6 @@ std::string Unit::GetDebugInfo() const
         << " Class: " << std::to_string(GetClass()) << "\n"
         << " " << (movespline ? movespline->ToString() : "Movespline: <none>");
     return sstr.str();
-}
-
-
-void Unit::_pushAssistance(Creature* p) {
-    for (int i = 0; i < 5; i++) {
-        if (m_assistances[i] == p) {
-            return;
-        }
-        if (m_assistances[i] == nullptr) {
-            m_assistances[i] = p;
-            return;
-        }
-    }
-}
-bool Unit::_isAssistance(Creature* p) {
-    for (int i = 0; i < 5; i++) {
-        if (!m_assistances[i])
-            return false;
-        if (m_assistances[i] == p) {
-            return true;
-        }
-    }
-    return false;
-}
-void Unit::_popAssistance(Creature* p) {
-    int i;
-    for (i = 0; i < 5; i++) {
-        if (m_assistances[i] == p) {
-            m_assistances[i] = nullptr;
-            break;
-        }
-    }
-    for (; i < 4; i++) {
-        if (m_assistances[i] == nullptr)
-            return;
-        m_assistances[i] = m_assistances[i + 1];
-    }
-}
-void Unit::_resetAssistances()
-{
-    for (int i = 0; i < 5; i++) {
-        m_assistances[i] = nullptr;
-    }
-}
-void Unit::_initAssistances() {
-    _resetAssistances();
 }
 
 void Unit::DisengageWithTarget(Unit* who) {

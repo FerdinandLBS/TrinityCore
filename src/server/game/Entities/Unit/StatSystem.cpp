@@ -1320,11 +1320,20 @@ void Guardian::UpdateMaxHealth()
 
     float value = GetFlatModifierValue(unitMod, BASE_VALUE) + GetCreateHealth();
     if (GetEntry() >= 45000) {
-        value = GetStat(STAT_STAMINA)*multiplicator;
-        if (HasSpell(86001)) {
-            value *= 1.4f;
+        Player* player = GetOwner()->ToPlayer();
+
+        if (player != nullptr) {
+            stamina = GetOwner()->GetStat(STAT_STAMINA);
+            value = (stamina - 20) * 10 + 20;
+
+            value += GetCreateHealth();
+            value *= m_creatureInfo->ModHealth;
+            value += GetFlatModifierValue(unitMod, TOTAL_VALUE);
         }
-        value += GetCreateHealth();
+        else {
+            value = GetOwner()->GetMaxHealth()* m_creatureInfo->ModHealth;
+        }
+        value += GetFlatModifierValue(unitMod, TOTAL_VALUE);
     }
     else {
         value *= GetPctModifierValue(unitMod, BASE_PCT);
@@ -1351,11 +1360,67 @@ void Guardian::UpdateMaxPower(Powers power)
         case ENTRY_FELGUARD:    multiplicator = 11.5f;  break;
         default:                multiplicator = 15.0f;  break;
     }
+    float value;
+    if (GetEntry() >= 45000) {
+        switch (GetEntry()) {
+        case 45000: // MK
+            value = 450 + (int)GetLevel()*1.5f;
+            break;
+        case 45001: // Watcher
+            value = 525 + (int)GetLevel() * 2;
+            break;
+        case 45002: // SS
+            value = 630 + (int)GetLevel() * 2;
+            break;
+        case 45003: // Mage
+            value = 765 + (int)GetLevel() * 3;
+            break;
+        case 45004: // Tinker
+            value = 765 + (int)GetLevel() * 3;
+            break;
+        case 45005: // Lich
+            value = 810 + (int)GetLevel() * 3;
+            break;
+        case 45006: // Tauren Cheif
+            value = 405 + (int)GetLevel()*1.5f;
+            break;
+        case 45007: // Paladin
+            value = 525 + (int)GetLevel()*1.5f;
+            break;
+        case 45008: // Dradlord
+            value = 645 + (int)GetLevel()*1.5f;
+            break;
+        case 45009: // Dark Ranger
+            value = 615 + (int)GetLevel() * 2;
+            break;
+        case 45010: // Forest Guard
+            value = 675 + (int)GetLevel() * 3;
+            break;
+        case 45011: // Beast Master
+            value = 495 + (int)GetLevel() * 2;
+            break;
+        case 45012: // DK
+            value = 525 + (int)GetLevel() * 2;
+            break;
+        case 45013: // Blade Master
+            value = 570 + (int)GetLevel() * 2;
+            break;
+        default:
+            if (GetOwner()) {
+                value = this->GetOwner()->GetMaxPower(power)*m_creatureInfo->ModMana;
+            }
+            else {
+                value = 100;
+            }
+        }
+        value += GetFlatModifierValue(unitMod, TOTAL_VALUE);
+    } else {
+        value = GetFlatModifierValue(unitMod, BASE_VALUE) + GetCreatePowerValue(power);
+        value *= GetPctModifierValue(unitMod, BASE_PCT);
+        value += GetFlatModifierValue(unitMod, TOTAL_VALUE) + addValue * multiplicator;
+        value *= GetPctModifierValue(unitMod, TOTAL_PCT);
+    }
 
-    float value  = GetFlatModifierValue(unitMod, BASE_VALUE) + GetCreatePowerValue(power);
-    value *= GetPctModifierValue(unitMod, BASE_PCT);
-    value += GetFlatModifierValue(unitMod, TOTAL_VALUE) + addValue * multiplicator;
-    value *= GetPctModifierValue(unitMod, TOTAL_PCT);
 
     SetMaxPower(power, uint32(value));
 }

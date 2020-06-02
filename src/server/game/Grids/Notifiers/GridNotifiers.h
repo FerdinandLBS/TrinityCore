@@ -810,6 +810,34 @@ namespace Trinity
         float i_hp;
     };
 
+    class MostHPPctInRange
+    {
+    public:
+        MostHPPctInRange(Unit const* obj, float range, bool isCombat) : i_obj(obj), i_combat(isCombat), i_range(range), i_hp(0.0f) { }
+
+        bool operator()(Unit* u)
+        {
+            if (i_combat == true && u->IsInCombat() == false)
+                return false;
+
+            if (u->GetEntry() < 44000 && u->GetTypeId() != TYPEID_PLAYER)
+                return false;
+
+            if (u->IsAlive() && !i_obj->IsHostileTo(u) && i_obj->IsWithinDistInMap(u, i_range) && u->GetHealthPct() > i_hp)
+            {
+                i_hp = u->GetHealthPct();
+                return true;
+            }
+            return false;
+        }
+
+    private:
+        Unit const* i_obj;
+        bool i_combat;
+        float i_range;
+        float i_hp;
+    };
+
     class MostHPMissingInRange
     {
         public:
@@ -1409,6 +1437,23 @@ namespace Trinity
 
         private:
             Unit const* unit;
+    };
+
+    class AllFriendlyCorpseInGrid
+    {
+    public:
+        AllFriendlyCorpseInGrid(Unit const* obj) : unit(obj) { }
+
+        bool operator()(Unit* u) const
+        {
+            if (!u->IsAlive() && u->IsVisible() && u->IsFriendlyTo(unit))
+                return true;
+
+            return false;
+        }
+
+    private:
+        Unit const* unit;
     };
 
     class AllGameObjectsWithEntryInRange

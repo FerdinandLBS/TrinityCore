@@ -17,6 +17,18 @@ public:
         SPELL_TIMER_ORIGIN = 1
     };
 
+    enum ASSISTANCE_CLASS {
+        NONE = 0,
+        TANK = 1,
+        HEALER = 2,
+        DPS = 3
+    };
+
+    enum ASSISTANCE_ATTACK_TYPE {
+        ATTACK_TYPE_MELEE = 0,
+        ATTACK_TYPE_CASTER = 1
+    };
+
     enum AI_ACTION_FLAG {
         AI_ACTION_NONE = 0,
         AI_ACTION_HIDE = 1,
@@ -29,52 +41,49 @@ public:
     uint32 AIFlag;
     explicit AssistanceAI(Creature* c) : CreatureAI(c) {
         AIFlag = AI_ACTION_NONE;
+        isInCombat = false;
+        isMovable = true;
+        isTargetChanged = false;
+        _awakeTime = 0;
+        _lifeTimer = -1;
     }
     Unit* SelectNextTarget(bool allowAutoSelect);
     void UpdateAI(uint32) override;
     static int32 Permissible(Creature const* creature);
     void JustDied(Unit* /*killer*/);
+    void JustAppeared() override;
+    void Reborn(uint32 pct);
 private:
+    ASSISTANCE_CLASS _class;
+    ASSISTANCE_ATTACK_TYPE _type;
     bool timerReady = false;
     uint32 gcd;
+    bool isInCombat;
+    bool isMovable;
+    bool isTargetChanged;
     bool auraApplied[MAX_CREATURE_SPELL];
-    uint32 spellsTimer[MAX_CREATURE_SPELL][MAX_TIMER_TYPE];
+    int32 spellsTimer[MAX_CREATURE_SPELL][MAX_TIMER_TYPE];
+    float _followAngle;
+    float _followDistance;
+    float _lifeTimer;
+    SpellCastResult _lastSpellResult;
+    float _awakeTime;
 
-    void castSpell(WorldObject* target, uint32 index);
-    void castSpell(const Position &dest, uint32 index);
+    Unit* GetVictim();
+    bool hasSpell(uint32 id, uint32& index);
+    bool castSpell(WorldObject* target, uint32 index);
+    bool castSpell(const Position &dest, uint32 index);
     bool isSpellReady(uint32 index);
     void updateTimer(uint32 diff);
+    void resetLifeTimer();
     void ResetPosition();
+    void ReadyToDie();
     bool isCaster();
     void EngagementStart(Unit * who);
-    bool AssistantsSpell(uint32 diff);
-    bool miniPetAI(uint32 diff);
+    float GetManaPct();
+    bool AssistantsSpell(uint32 diff, Unit* victim);
     void UseInstanceHealing();
-    float getSpecialFollowAngle() {
-        /*
-        85990: sword
-        86001: tank
-        85980: healer
-        85970: magic
-        85960: assistance
-        */
-        uint32 index = 0;
-        for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
-            switch (me->m_spells[i]) {
-            case 85990:
-                return 0.0f;
-            case 86001:
-                return static_cast<float>(1.6f*M_PI);
-            case 85980:
-                return static_cast<float>(0.8f*M_PI);
-            case 85970:
-                return static_cast<float>(0.4f*M_PI);
-            case 85960:
-                return static_cast<float>(1.2f*M_PI);
-            }
-        }
-        return static_cast<float>(0.6f*M_PI);
-    }
+    float getSpecialFollowAngle();
 };
 
 #endif

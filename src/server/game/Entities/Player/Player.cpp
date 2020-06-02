@@ -1844,7 +1844,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         //else
         //    return false;
     }
-    this->_resetAssistances();
 
     return true;
 }

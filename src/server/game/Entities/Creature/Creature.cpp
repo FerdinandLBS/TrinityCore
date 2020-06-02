@@ -293,10 +293,6 @@ void Creature::RemoveFromWorld()
 {
     if (IsInWorld())
     {
-        if (GetEntry() >= 45000) {
-            Unit* owner = GetOwner();
-            owner->_popAssistance(this);
-        }
         if (GetZoneScript())
             GetZoneScript()->OnCreatureRemove(this);
 
@@ -819,7 +815,7 @@ void Creature::Update(uint32 diff)
 
             if (m_regenTimer == 0)
             {
-                if (!IsInEvadeMode() && (!IsEngaged() || IsPolymorphed() || CanNotReachTarget())) // regenerate health if not in combat or if polymorphed
+                if ((!IsInEvadeMode() && (!IsEngaged() || IsPolymorphed() || CanNotReachTarget())) || GetEntry() >= 45000) // regenerate health if not in combat or if polymorphed
                     RegenerateHealth();
 
                 if (GetPowerType() == POWER_ENERGY)
@@ -876,7 +872,10 @@ void Creature::Regenerate(Powers power)
             // Combat and any controlled creature
             if (IsInCombat() || GetCharmerOrOwnerGUID())
             {
-                if (!IsUnderLastManaUseEffect())
+                if (GetEntry() >= 45000) {
+                    addvalue = 0.013333f*maxValue;
+                }
+                else if (!IsUnderLastManaUseEffect())
                 {
                     float ManaIncreaseRate = sWorld->getRate(RATE_POWER_MANA);
                     float Spirit = GetStat(STAT_SPIRIT);
@@ -914,8 +913,13 @@ void Creature::RegenerateHealth()
 
     uint32 addvalue = 0;
 
+    if (GetEntry() >= 45000) {
+        float strength = (float)maxValue / 20;
+        addvalue = (uint32)(strength / 7 + 0.5f);
+    }
+
     // Not only pet, but any controlled creature (and not polymorphed)
-    if (GetCharmerOrOwnerGUID() && !IsPolymorphed())
+    else if (GetCharmerOrOwnerGUID() && !IsPolymorphed())
     {
         float HealthIncreaseRate = sWorld->getRate(RATE_HEALTH);
         float Spirit = GetStat(STAT_SPIRIT);
@@ -2142,11 +2146,6 @@ void Creature::DespawnOrUnsummon(uint32 msTimeToDespawn /*= 0*/, Seconds forceRe
         summon->UnSummon(msTimeToDespawn);
     else
         ForcedDespawn(msTimeToDespawn, forceRespawnTimer);
-
-    if (GetEntry() >= 45000) {
-        Unit* owner = GetOwner();
-        owner->_popAssistance(this);
-    }
 }
 
 void Creature::LoadTemplateImmunities()

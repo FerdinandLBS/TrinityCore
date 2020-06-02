@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2008-2019 TrinityCore <https://www.trinitycore.org/>
  * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
  *
@@ -33,11 +33,33 @@
 #include "Cell.h"
 #include "CellImpl.h"
 #include "AssistanceAI.h"
+#include "TemporarySummon.h"
 
 /////////////////
 // AggressorAI
 /////////////////
 
+
+const char* getCustomGreeting(int entry) {
+    switch (entry) {
+    case 45000:
+        return "希望这次你准备了烈酒";
+    case 45003:
+        return "我到了，让我们速战速决吧";
+    case 46000:
+        return "为您效劳";
+    }
+    return nullptr;
+}
+
+Unit* SelectMostHpPctFriedly(Unit* who, float range, bool isCombat) {
+    Unit* unit = nullptr;
+    Trinity::MostHPPctInRange u_check(who, range, isCombat);
+    Trinity::UnitLastSearcher<Trinity::MostHPPctInRange> searcher(who, unit, u_check);
+    Cell::VisitAllObjects(who, searcher, range);
+
+    return unit;
+}
 
 Unit* SelectLeastHpPctFriendly(Unit* who, float range, bool isCombat) {
     Unit* unit = nullptr;
@@ -62,15 +84,6 @@ int32 AssistanceAI::Permissible(Creature const* creature)
 
 Unit* AssistanceAI::SelectNextTarget(bool allowAutoSelect)
 {
-    // Provides next target selection after current target death.
-    // This function should only be called internally by the AI
-    // Targets are not evaluated here for being valid targets, that is done in _CanAttack()
-    // The parameter: allowAutoSelect lets us disable aggressive pet auto targeting for certain situations
-
-    // Passive pets don't do next target selection
-    //if (me->HasReactState(REACT_PASSIVE))
-    //    return nullptr;
-
     // Check pet attackers first so we don't drag a bunch of targets to the owner
     if (Unit* myAttacker = me->getAttackerForHelper())
         if (!myAttacker->HasBreakableByDamageCrowdControlAura())
@@ -90,58 +103,100 @@ Unit* AssistanceAI::SelectNextTarget(bool allowAutoSelect)
     if (Unit* ownerVictim = me->GetCharmerOrOwner()->GetVictim())
         return ownerVictim;
 
-    // Neither pet or owner had a target and aggressive pets can pick any target
-    // To prevent aggressive pets from chain selecting targets and running off, we
-    //  only select a random target if certain conditions are met.
-    if (me->HasReactState(REACT_AGGRESSIVE) && allowAutoSelect)
-    {
-        if (!me->GetCharmInfo()->IsReturning() || me->GetCharmInfo()->IsFollowing() || me->GetCharmInfo()->IsAtStay())
-            if (Unit* nearTarget = me->SelectNearestHostileUnitInAggroRange(true))
-                return nearTarget;
-    }
-
     // Default - no valid targets
     return nullptr;
 }
 
-void AssistanceAI::castSpell(WorldObject* target, uint32 index) {
-    me->CastSpell(target, me->m_spells[index]);
-    spellsTimer[index][SPELL_TIMER_CURRENT] = 0;
-    gcd = 0;
+bool AssistanceAI::castSpell(WorldObject* target, uint32 index) {
+    _lastSpellResult = me->CastSpell(target, me->m_spells[index]);
+
+    if (_lastSpellResult == SpellCastResult::SPELL_CAST_OK) {
+        spellsTimer[index][SPELL_TIMER_CURRENT] = 0;
+        gcd = 0;
+        return true;
+    }
+    return false;
 }
 
-void AssistanceAI::castSpell(const Position &dest, uint32 index) {
-    me->CastSpell(dest, me->m_spells[index]);
-    spellsTimer[index][SPELL_TIMER_CURRENT] = 0;
-    gcd = 0;
+bool AssistanceAI::castSpell(const Position &dest, uint32 index) {
+    _lastSpellResult = me->CastSpell(dest, me->m_spells[index]);
+
+    if (_lastSpellResult == SpellCastResult::SPELL_CAST_OK) {
+        spellsTimer[index][SPELL_TIMER_CURRENT] = 0;
+        gcd = 0;
+        return true;
+    }
+    return false;
 }
 
 bool AssistanceAI::isSpellReady(uint32 index) {
     return (spellsTimer[index][SPELL_TIMER_CURRENT] >= spellsTimer[index][SPELL_TIMER_ORIGIN] && gcd >= ASSIST_GCD);
 };
 
-bool AssistanceAI::AssistantsSpell(uint32 diff) {
+float AssistanceAI::GetManaPct() {
+    return (float)me->GetPower(Powers::POWER_MANA) / (float)me->GetMaxPower(Powers::POWER_MANA);
+}
+
+
+Unit* AssistanceAI::GetVictim() {
+    Unit* victim = nullptr;
+    Unit* owner = me->GetOwner();
+
+    if (!me->IsAlive())
+    {
+        EngagementOver();
+        goto bail;
+    }
+    isTargetChanged = false;
+    if (nullptr == (victim = me->GetVictim())) {
+        victim = SelectNextTarget(false);
+        if (victim) {
+            me->Attack(victim, !isCaster());
+            isTargetChanged = true;
+        }
+    }
+    if (owner) {
+        if (owner->IsEngaged()) {
+            Unit* ownerTarget = ObjectAccessor::GetUnit(*owner, owner->GetTarget());
+            if (ownerTarget && ownerTarget->IsAlive() && ownerTarget->IsHostileTo(me)) {
+                // If owner selected one enemy
+                victim = ownerTarget;
+                if (victim != me->GetVictim()) {
+                    me->Attack(victim, !isCaster());
+                    isTargetChanged = true;
+                }
+            }
+        }
+    }
+
+bail:
+    if (victim && !victim->IsAlive()) {
+        victim = nullptr;
+    }
+
+    if (!victim) {
+        me->SetTarget(ObjectGuid::Empty);
+    }
+
+    return victim;
+}
+
+bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
     if (me->GetEntry() < 45000) {
         if (me->GetEntry() < 40000)
             return false;
     }
 
     bool casted = false;
-    Unit* victim = me->GetVictim();
-    Unit* ownerVictim = me->GetOwner()->GetVictim();
-    if (victim == nullptr || (ownerVictim != nullptr && victim != ownerVictim)) {
-        victim = me->GetOwner()->GetVictim();
-        if (victim == nullptr) {
-            victim = me->GetOwner()->GetCombatManager().GetAnyTarget();
-        }
-    }
 
-    if (me->HasUnitState(UNIT_STATE_CASTING))
+    if (me->HasUnitState(UNIT_STATE_CASTING) || me->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
         return true;
 
-    for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
+    uint32 i = 0;
+ redo:
+    for (; i < MAX_CREATURE_SPELL && casted == false; i++) {
         const SpellInfo* si = sSpellMgr->GetSpellInfo(me->m_spells[i]);
-
+        _lastSpellResult = SpellCastResult::SPELL_CAST_OK;
         if (si == nullptr)
             return false;
 
@@ -149,22 +204,83 @@ bool AssistanceAI::AssistantsSpell(uint32 diff) {
             continue;
         }
 
+        // Take care of specail AI
+        switch (me->m_spells[i]) {
+        case 85912:
+            if (me->GetHealthPct() > 60) {
+                continue;
+            }
+            else {
+                std::list<Creature*> list;
+                me->GetAllMinionsByEntry(list, 46017);
+                if (list.size() > 0) {
+                    casted = castSpell(list.front(), i);
+                    goto endloop;
+                }
+            }
+            continue;
+        case 85922: // Life Drain
+            if (me->GetHealthPct() > 60) {
+                continue;
+            }
+            break;
+        case 85923: // Silence
+            if (!victim || !victim->HasUnitState(UNIT_STATE_CASTING)) {
+                continue;
+            }
+            break;
+        case 85953: // Dark Ceremony
+            if (GetManaPct() >= 0.6f) {
+                continue;
+            }
+            {
+                Unit* target = SelectMostHpPctFriedly(me, 40, true);
+                if (target == nullptr)
+                    continue;
+
+                casted = castSpell(target, i);
+            }
+            goto endloop;
+        case 85891: // Spirit of Revenge
+        case 87278: // Wild Imp: Master Enhance
+            casted = castSpell(me->GetOwner(), i);
+            goto endloop;
+        default:
+            ;
+        }
+
         // heal and buff and no target spell
-        if (si->IsSelfCast()) {
+        if (si->IsSelfCast() || si->Effects[0].Effect == SPELL_EFFECT_SUMMON) {
             if (si->Effects[0].IsEffect(SpellEffects::SPELL_EFFECT_APPLY_AURA) ||
                 si->Effects[0].IsEffect(SPELL_EFFECT_APPLY_AREA_AURA_RAID)) {
                 if (me->HasAura(me->m_spells[i])) {
                     continue;
                 }
             }
-            castSpell(me, i);
-            casted = true;
+
+            // If we are tank. A self cast spell may be a final cast. We should keep it.
+            if (_class == ASSISTANCE_CLASS::TANK && !si->Effects[0].IsEffect(SpellEffects::SPELL_EFFECT_SUMMON)) {
+                if (!(si->GetRecoveryTime() > 30000 && me->GetHealthPct() <= 30)) {
+                    continue;
+                }
+            }
+
+            if (si->Effects[0].Effect == SPELL_EFFECT_TELEPORT_UNITS) {
+                casted = castSpell(victim, i);
+            }
+            else {
+                casted = castSpell(me, i);
+            }
             break;
         }
 
-        if (si->RangeEntry->ID == 1 || si->RangeEntry->ID == 3) {
-            castSpell(me, i);
-            casted = true;
+        // Range Attack
+        if ((si->RangeEntry->ID == 1 && si->Effects[0].RadiusEntry) ||
+            si->Effects[0].TargetA.GetTarget() == TARGET_UNIT_CONE_ENEMY_24) {
+            if (victim == nullptr || si->Effects[0].RadiusEntry->RadiusMax/2 <= me->GetDistance(victim))
+                continue;
+
+            casted = castSpell(me, i);
             break;
         }
 
@@ -173,22 +289,12 @@ bool AssistanceAI::AssistantsSpell(uint32 diff) {
             if (victim == nullptr)
                 continue;
 
-            float x, y, z;
-            victim->GetPosition(x, y, z);
 
-            if (!me->IsWithinLOS(x, y, z, LINEOFSIGHT_ALL_CHECKS, VMAP::ModelIgnoreFlags::M2) ||
-                me->GetDistance(victim->GetPosition()) > si->RangeEntry->maxRangeHostile) {
-                if (!me->HasUnitState(UNIT_STATE_CHASE)) {
-                    me->GetMotionMaster()->Clear();
-                    me->GetMotionMaster()->MoveChase(victim, 2.0f);
-                }
-                //me->GetMotionMaster()->MoveCloserAndStop(1, victim, dist-2.0f);
-                return false;
-            }
+            // If we are casting one debuff then check it
             if (si->Effects[0].IsEffect(SPELL_EFFECT_APPLY_AURA) && victim->HasAura(me->m_spells[i]) && !si->Effects[1].IsEffect(SPELL_EFFECT_SCHOOL_DAMAGE))
                 continue;
-            castSpell(victim, i);
-            casted = true;
+
+            casted = castSpell(victim, i);
             break;
         }
 
@@ -196,54 +302,148 @@ bool AssistanceAI::AssistantsSpell(uint32 diff) {
             si->Effects[1].TargetA.GetTarget() == TARGET_UNIT_DEST_AREA_ENEMY ||
             si->Effects[0].TargetA.GetTarget() == TARGET_DEST_DYNOBJ_ENEMY)
             && victim) {
-            castSpell(victim->GetPosition(), i);
-            casted = true;
+            casted = castSpell(victim->GetPosition(), i);
             break;
         }
 
         /* We are healers */
-        if (me->HasSpell(85980) || me->HasSpell(85970)) {
-            if (si->Effects[0].TargetA.GetTarget() == TARGET_UNIT_TARGET_ALLY || si->Effects[1].TargetB.GetTarget() == TARGET_UNIT_DEST_AREA_ALLY) {
-                //victim->GetThreatManager()
-                Unit* t = SelectLeastHpPctFriendly(me, 40.0f, true);
-                if (t) {
-                    if (si->Effects[0].Effect == SPELL_EFFECT_APPLY_AURA && t->HasAura(si->Id))
-                        continue;
-                    castSpell(t, i);
-                    return true;
-                }
-                else {
-                    if (me->GetDistance(me->GetOwner()->GetPosition()) > 15.0f)
-                        me->GetMotionMaster()->MoveCloserAndStop(1, me->GetOwner(), 15.0f);
-                }
-            }
+        if (si->Effects[0].TargetA.GetTarget() == TARGET_UNIT_TARGET_ALLY ||
+            si->Effects[1].TargetB.GetTarget() == TARGET_UNIT_DEST_AREA_ALLY ||
+            si->Effects[0].TargetA.GetTarget() == TARGET_UNIT_TARGET_CHAINHEAL_ALLY) {
+            //victim->GetThreatManager()
 
-            casted = true;
+            Unit* owner = me;
+            if (me->GetOwner()->ToPlayer() == nullptr)
+                owner = me->GetOwner();
+            Unit* t = SelectLeastHpPctFriendly(owner, 50.0f, true);
+            if (t && t->GetHealthPct() < 95) {
+                if (si->Effects[0].Effect == SPELL_EFFECT_APPLY_AURA && t->HasAura(si->Id))
+                    continue;
+                casted = castSpell(t, i);
+                break;
+            }
+            else {
+                if (me->GetDistance(me->GetOwner()->GetPosition()) > 15.0f)
+                    me->GetMotionMaster()->MoveCloserAndStop(1, me->GetOwner(), 15.0f);
+            }
         }
     }
+endloop:
+    if (casted) {
+        return true;
+    }
 
-    return casted;
+    switch (_lastSpellResult) {
+    case SpellCastResult::SPELL_FAILED_LINE_OF_SIGHT:
+    case SpellCastResult::SPELL_FAILED_OUT_OF_RANGE:
+        if (!me->HasUnitState(UNIT_STATE_CHASE) && isMovable && _type == ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER) {
+            me->GetMotionMaster()->Clear();
+            me->GetMotionMaster()->MoveChase(victim, 2.0f);
+        }
+        break;
+    case SpellCastResult::SPELL_FAILED_NO_POWER:
+        _lastSpellResult = SpellCastResult::SPELL_CAST_OK;
+        i++;
+        goto redo;
+        break;
+    default:
+        ;
+    }
+
+    return false;
 }
 
-bool AssistanceAI::miniPetAI(uint32 diff) {
+float AssistanceAI::getSpecialFollowAngle() {
+    uint32 index = 0;
+    for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
+        switch (me->m_spells[i]) {
+        case 85990: // sword
+            return 0.0f;
+        case 86001: // tank
+            return static_cast<float>(1.6f*M_PI);
+        case 85980: // healer
+            return static_cast<float>(0.8f*M_PI);
+        case 85970: // mage
+            return static_cast<float>(0.4f*M_PI);
+        case 85895: // assistance
+            return static_cast<float>(1.2f*M_PI);
+        }
+    }
+    return static_cast<float>(rand_chance()*M_PI);
+}
+
+bool AssistanceAI::hasSpell(uint32 id, uint32& index) {
+    for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
+        if (id == me->m_spells[i]) {
+            index = i;
+            return true;
+        }
+    }
     return false;
+}
+
+void AssistanceAI::ReadyToDie() {
+    switch (me->GetEntry()) {
+    case 46002:
+        me->CastSpell(me->GetOwner(), 87278);
+        break;
+    }
+}
+
+void AssistanceAI::resetLifeTimer() {
+    switch (me->GetEntry()) {
+    case 46002:
+        _lifeTimer = 20000;
+        break;
+    }
+}
+
+void AssistanceAI::Reborn(uint32 pct) {
+    if (me->getDeathState() == ALIVE) {
+        return;
+    }
+    me->setDeathState(ALIVE);
+    me->SetHealth(uint32(me->GetMaxHealth()*pct/100));
+    me->SetPower(POWER_MANA, uint32(me->GetMaxPower(POWER_MANA)));
+    me->CastSpell(me, 85948);
+    //me->m_Events.
+    AssistantsSpell(0, 0);
 }
 
 void AssistanceAI::JustDied(Unit* killer) {
     if (me->GetEntry() >= 45000) {
-        me->Yell("???.......", Language::LANG_UNIVERSAL);
-        me->DespawnOrUnsummon(3000);
-        me->GetOwner()->_popAssistance(me);
+        uint32 index = 0;
+        if (hasSpell(85949, index)) {
+            if (spellsTimer[index][SPELL_TIMER_CURRENT] >= spellsTimer[index][SPELL_TIMER_ORIGIN]) {
+                Reborn(100);
+                spellsTimer[index][SPELL_TIMER_CURRENT] = 0;
+                return;
+            }
+        }
+
+        if (nullptr != me->GetOwner()->ToPlayer() && me->GetEntry() < 46000) {
+            me->Yell(".......", Language::LANG_UNIVERSAL);
+        }
+        //me->DespawnOrUnsummon(14000);
     }
 }
 
 void AssistanceAI::updateTimer(uint32 diff)
 {
-    if (me->GetEntry() < 40000)
+    uint32 entry = me->GetEntry();
+    if (entry < 40000)
         return;
 
-    if (me->GetDistance(me->GetOwner()) > 100.0f) {
+    if (me->GetOwner() && me->GetOwner()->ToPlayer() && me->GetDistance(me->GetOwner()) > 50.0f) {
         me->NearTeleportTo(me->GetOwner()->GetPosition(), true);
+        return;
+    }
+
+    // Update my level to owner's level
+    if (me->GetLevel() < me->GetOwner()->GetLevel()) {
+        me->SetLevel(me->GetOwner()->GetLevel());
+        ((Guardian*)me)->InitStatsForLevel(me->GetLevel());
+        return;
     }
 
     if (timerReady) {
@@ -259,9 +459,16 @@ void AssistanceAI::updateTimer(uint32 diff)
         if (gcd < 1000) {
             gcd += diff;
         }
+        if (_lifeTimer > 0) {
+            _lifeTimer -= diff;
+            if (_lifeTimer <= 0) {
+                ReadyToDie();
+            }
+        }
     }
     else {
         gcd = 1000;
+        resetLifeTimer();
         for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
             if (me->m_spells[i]) {
                 const SpellInfo* si = sSpellMgr->GetSpellInfo(me->m_spells[i]);
@@ -272,10 +479,14 @@ void AssistanceAI::updateTimer(uint32 diff)
                 auraApplied[i] = false;
 
                 if ((si->Effects[0].Effect == SPELL_EFFECT_APPLY_AURA || si->Effects[0].Effect == SPELL_EFFECT_APPLY_AREA_AURA_RAID) && auraApplied[i] == false) {
-                    castSpell(me, i);
-                    auraApplied[i] = true;
+                    if (si->GetRecoveryTime() == 0 &&
+                        si->Id != 87278 &&
+                        si->Id != 85891) {
+                        castSpell(me, i);
+                        auraApplied[i] = true;
+                    }
                 }
-                spellsTimer[i][SPELL_TIMER_CURRENT] = si->GetRecoveryTime();
+                spellsTimer[i][SPELL_TIMER_CURRENT] = si->GetRecoveryTime() - si->StartRecoveryTime;
                 spellsTimer[i][SPELL_TIMER_ORIGIN] = si->GetRecoveryTime();
             }
         }
@@ -297,8 +508,10 @@ void AssistanceAI::UseInstanceHealing() {
             castSpell(me, i);
             return;
         }
-
-        Unit* t = SelectLeastHpPctFriendly(me, 30.0f, false);
+        Unit* owner = me;
+        if (me->GetOwner()->ToPlayer() == nullptr)
+            owner = me->GetOwner();
+        Unit* t = SelectLeastHpPctFriendly(owner, 30.0f, false);
         if (t == nullptr)
             continue;
 
@@ -319,6 +532,11 @@ void AssistanceAI::ResetPosition()
     if (AIFlag == AI_ACTION_FLAG::AI_ACTION_HOLD_POSITION)
         return;
 
+    if (!isMovable) {
+        me->StopMoving();
+        return;
+    }
+
     if (!(me->GetVictim() && me->EnsureVictim()->IsAlive())) {
         //MovementGenerator* mg = me->GetMotionMaster()->;
         if (!(me->IsCharmed() || me->IsSummon() || me->IsGuardian())) {
@@ -327,40 +545,127 @@ void AssistanceAI::ResetPosition()
 
         me->AttackStop();
         me->SetTarget(ObjectGuid::Empty);
-        if (me->HasUnitState(UNIT_STATE_FOLLOW | UNIT_STATE_FOLLOW_MOVE)) {
-            //return;
-        }
-        if (me->HasUnitMovementFlag(UNIT_STATE_FOLLOW)) {
+        if (me->HasUnitState(UNIT_STATE_FOLLOW) && isInCombat == false) {
             return;
         }
 
-        if (me->GetCharmInfo() && !me->GetCharmInfo()->IsFollowing() && !me->GetCharmInfo()->IsReturning())
-        {
-            me->GetCharmInfo()->SetIsReturning(true);
-        }
+        me->StopMoving();
         me->GetMotionMaster()->Clear();
-
-        float dist = 1.0f;
-        if (me->HasSpell(86001))
-            dist *= 3;
-
-        me->GetMotionMaster()->MoveFollow(me->GetCharmerOrOwner(), dist, me->GetFollowAngle());
-        me->SetUnitMovementFlags(UNIT_STATE_FOLLOW);
+        me->GetMotionMaster()->MoveFollow(me->GetCharmerOrOwner(), _followDistance, _followAngle);
+        isInCombat = false;
         me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
     }
 }
 
-bool AssistanceAI::isCaster()
-{
-    switch (me->GetEntry()) {
-    case 44000:
-    case 45002:
-    case 45003:
-    case 45005:
-    case 45007:
-        return true;
+void AssistanceAI::JustAppeared() {
+    uint32 effSpell = 0;
+    const char* greeting = getCustomGreeting(me->GetEntry());
+    Player* owner = me->GetOwner()? me->GetOwner()->ToPlayer():nullptr;
+
+    if (greeting)
+        me->Yell(greeting, Language::LANG_UNIVERSAL, me->GetOwner());
+
+    _followAngle = getSpecialFollowAngle();
+    _followDistance = 1.2f;
+
+    updateTimer(0);
+
+    //  War III heroes
+    if (me->GetEntry() >= 45000 && me->GetEntry() <= 45100) {
+        me->CastSpell(me, 86008);
     }
-    return false;
+
+    _class = ASSISTANCE_CLASS::NONE;
+    _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_MELEE;
+
+    // Set class and attack type
+    switch (me->GetEntry()) {
+    case 45000: // MK
+        me->SetCanDualWield(true);
+    case 45006: // Tauren Cheif
+    case 45012: // DK
+        _class = ASSISTANCE_CLASS::TANK;
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_MELEE;
+        break;
+    case 45001: // watcher
+        // Watcher dont have off hand animation
+        //me->SetCanDualWield(true);
+        me->ApplyAttackTimePercentMod(WeaponAttackType::BASE_ATTACK, 100, true);
+        break;
+    case 45002: // Shadow Shaman
+    case 45010: // Forest Guard
+        _class = ASSISTANCE_CLASS::HEALER;
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
+    case 45007: // Paladin
+        _class = ASSISTANCE_CLASS::HEALER;
+        break;
+    case 45011: // BM
+        me->SetCanDualWield(true);
+        break;
+    case 46002: // Wild Ghost
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        if (owner && owner->GetRace() == Races::RACE_BLOODELF) {
+            
+        }
+        break;
+    case 46016:
+        me->SetCanDualWield(true);
+        break;
+    case 44000:
+    case 45003:
+    case 45004:
+    case 45005:
+    case 45009:
+    case 46000:
+    case 46001:
+    case 46006:
+    case 46009:
+    case 46011:
+    case 46012:
+    case 46015:
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
+
+    case 46018:
+        _awakeTime = 1500;
+        effSpell = 85907;
+        break;
+    case 46020:
+    case 46021:
+    case 46019:
+        _awakeTime = 1500;
+        effSpell = 85907;
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
+    case 46007:
+        isMovable = false;
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
+    case 46017:
+        _awakeTime = 4000;
+        break;
+    case 46024:
+        effSpell = 11010;
+        me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
+    default:
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_MELEE;
+    }
+
+    if (effSpell > 0) {
+        me->CastSpell(me, effSpell);
+    }
+    AssistantsSpell(0, nullptr);
+
+    me->StopMoving();
+    me->GetMotionMaster()->Clear();
+}
+
+inline bool AssistanceAI::isCaster()
+{
+    return _type == ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
 }
 
 void AssistanceAI::EngagementStart(Unit* who) {
@@ -371,45 +676,55 @@ void AssistanceAI::EngagementStart(Unit* who) {
 
 void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
 {
-    bool isTargetChanged = false;
+    // We are not awaken. Do nothing
+    if (_awakeTime > 0) {
+        me->StopMoving();
+        _awakeTime -= diff;
+        return;
+    }
 
     // update spells cool down
     updateTimer(diff);
 
     // we are not in combat. return
-    if (!me->IsEngaged() && (!me->GetOwner() || !me->GetOwner()->IsInCombat()))
+    if (!me->IsEngaged() && (!me->GetOwner() || !me->GetOwner()->IsEngaged()))
         return ResetPosition();
 
-    Unit* victim = me->SelectVictim();
-    Unit* owner = me->GetOwner();
+    if (me->HasUnitState(UNIT_STATE_CASTING)) {
+        return;
+    }
 
-    // fix the target
-    if (owner) {
-        Unit* ov = owner->GetVictim();
-        if (victim == nullptr || (victim != ov && ov)) {
-            isTargetChanged = true;
-            victim = ov;
+    Unit* victim = GetVictim();
+
+    if (victim && victim->GetEntry() != 36954) {
+        if (!isInCombat) {
+            isInCombat = true;
+            me->StopMoving();
+            me->GetMotionMaster()->Clear();
+        }
+
+        if (isTargetChanged == true) {
+            if (!isCaster()) {
+                if (AIFlag == AI_ACTION_FLAG::AI_ACTION_NONE || isTargetChanged)
+                    me->GetMotionMaster()->MoveChase(victim);
+            }
+        }
+    } else {
+        return ResetPosition();
+    }
+
+    bool res = AssistantsSpell(diff, victim);
+    if (isCaster()) {
+        if (res == true) {
+            // As a caster once we successfully casted one spell. We should stop if we are moving
+            me->StopMoving();
+            if (me->HasUnitState(UNIT_STATE_CHASE)) {
+                me->GetMotionMaster()->Clear();
+                me->ClearUnitState(UNIT_STATE_CHASE);
+            }
         }
     }
-    if (victim && victim->GetEntry() != 36954) {
-        if ((!me->GetTarget() && victim != me->GetVictim()) || isTargetChanged == true) {
-            if (isCaster()) {
-                // Set our target
-
-                me->SetTarget(victim->GetGUID());
-                me->GetOwner()->EngageWithTarget(victim);
-                me->GetMotionMaster()->Clear();
-            }
-            else {
-                if (AIFlag == AI_ACTION_FLAG::AI_ACTION_NONE || isTargetChanged)
-                    AttackStart(victim);
-            }
-        }
-    } else
-        return ResetPosition();
-
-    bool res = AssistantsSpell(diff);
-    if (res == false) {
+    else {
         DoMeleeAttackIfReady();
     }
 }
