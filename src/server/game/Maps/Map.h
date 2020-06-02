@@ -592,8 +592,8 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         void UpdatePlayerZoneStats(uint32 oldZone, uint32 newZone);
 
-        void SaveRespawnTime(SpawnObjectType type, ObjectGuid::LowType spawnId, uint32 entry, time_t respawnTime, uint32 gridId, SQLTransaction dbTrans = nullptr, bool startup = false);
-        void SaveRespawnInfoDB(RespawnInfo const& info, SQLTransaction dbTrans = nullptr);
+        void SaveRespawnTime(SpawnObjectType type, ObjectGuid::LowType spawnId, uint32 entry, time_t respawnTime, uint32 gridId, CharacterDatabaseTransaction dbTrans = nullptr, bool startup = false);
+        void SaveRespawnInfoDB(RespawnInfo const& info, CharacterDatabaseTransaction dbTrans = nullptr);
         void LoadRespawnTimes();
         void DeleteRespawnTimes() { UnloadAllRespawnInfos(); DeleteRespawnTimesInDB(GetId(), GetInstanceId()); }
         static void DeleteRespawnTimesInDB(uint16 mapId, uint32 instanceId);
@@ -686,7 +686,7 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
 
         NGridType* getNGrid(uint32 x, uint32 y) const
         {
-            ASSERT(x < MAX_NUMBER_OF_GRIDS && y < MAX_NUMBER_OF_GRIDS);
+            ASSERT(x < MAX_NUMBER_OF_GRIDS && y < MAX_NUMBER_OF_GRIDS, "x = %u, y = %u", x, y);
             return i_grids[x][y];
         }
 
@@ -770,21 +770,25 @@ class TC_GAME_API Map : public GridRefManager<NGridType>
         void DoRespawn(SpawnObjectType type, ObjectGuid::LowType spawnId, uint32 gridId);
         bool AddRespawnInfo(RespawnInfo const& info);
         void UnloadAllRespawnInfos();
-        void DeleteRespawnInfo(RespawnInfo* info, SQLTransaction dbTrans = nullptr);
+        void DeleteRespawnInfo(RespawnInfo* info, CharacterDatabaseTransaction dbTrans = nullptr);
+        void DeleteRespawnInfoFromDB(SpawnObjectType type, ObjectGuid::LowType spawnId, CharacterDatabaseTransaction dbTrans = nullptr);
 
     public:
         void GetRespawnInfo(std::vector<RespawnInfo*>& respawnData, SpawnObjectTypeMask types) const;
         RespawnInfo* GetRespawnInfo(SpawnObjectType type, ObjectGuid::LowType spawnId) const;
-        void Respawn(SpawnObjectType type, ObjectGuid::LowType spawnId, SQLTransaction dbTrans = nullptr)
+        void Respawn(SpawnObjectType type, ObjectGuid::LowType spawnId, CharacterDatabaseTransaction dbTrans = nullptr)
         {
             if (RespawnInfo* info = GetRespawnInfo(type, spawnId))
                 Respawn(info, dbTrans);
         }
-        void Respawn(RespawnInfo* info, SQLTransaction dbTrans = nullptr);
-        void RemoveRespawnTime(SpawnObjectType type, ObjectGuid::LowType spawnId, SQLTransaction dbTrans = nullptr)
+        void Respawn(RespawnInfo* info, CharacterDatabaseTransaction dbTrans = nullptr);
+        void RemoveRespawnTime(SpawnObjectType type, ObjectGuid::LowType spawnId, CharacterDatabaseTransaction dbTrans = nullptr, bool alwaysDeleteFromDB = false)
         {
             if (RespawnInfo* info = GetRespawnInfo(type, spawnId))
                 DeleteRespawnInfo(info, dbTrans);
+            // Some callers might need to make sure the database doesn't contain any respawn time
+            else if (alwaysDeleteFromDB)
+                DeleteRespawnInfoFromDB(type, spawnId, dbTrans);
         }
         size_t DespawnAll(SpawnObjectType type, ObjectGuid::LowType spawnId);
 

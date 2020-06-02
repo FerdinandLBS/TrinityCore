@@ -44,7 +44,7 @@ void SmartWaypointMgr::LoadFromDB()
 
     _waypointStore.clear();
 
-    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_SMARTAI_WP);
+    WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_SMARTAI_WP);
     PreparedQueryResult result = WorldDatabase.Query(stmt);
 
     if (!result)
@@ -114,7 +114,7 @@ void SmartAIMgr::LoadSmartAIFromDB()
     for (SmartAIEventMap& eventmap : mEventMap)
         eventmap.clear();  //Drop Existing SmartAI List
 
-    PreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_SMART_SCRIPTS);
+    WorldDatabasePreparedStatement* stmt = WorldDatabase.GetPreparedStatement(WORLD_SEL_SMART_SCRIPTS);
     PreparedQueryResult result = WorldDatabase.Query(stmt);
 
     if (!result)
@@ -542,6 +542,7 @@ bool SmartAIMgr::IsTargetValid(SmartScriptHolder const& e)
         case SMART_TARGET_LOOT_RECIPIENTS:
         case SMART_TARGET_FARTHEST:
         case SMART_TARGET_VEHICLE_PASSENGER:
+        case SMART_TARGET_CLOSEST_UNSPAWNED_GAMEOBJECT:
             break;
         default:
             TC_LOG_ERROR("sql.sql", "SmartAIMgr: Not handled target_type(%u), Entry %d SourceType %u Event %u Action %u, skipped.", e.GetTargetType(), e.entryOrGuid, e.GetScriptType(), e.event_id, e.GetActionType());

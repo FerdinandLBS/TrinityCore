@@ -1356,21 +1356,7 @@ void Spell::SelectImplicitCasterDestTargets(SpellEffIndex effIndex, SpellImplici
             Position pos = dest._position;
 
             unitCaster->MovePositionToFirstCollision(pos, dist, angle);
-            // Generate path to that point.
-            if (!m_preGeneratedPath)
-                m_preGeneratedPath = std::make_unique<PathGenerator>(unitCaster);
-
-            m_preGeneratedPath->SetPathLengthLimit(dist);
-
-            // Should we use straightline here ? What do we do when we don't have a full path ?
-            bool pathResult = m_preGeneratedPath->CalculatePath(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), false, true);
-            if (pathResult && m_preGeneratedPath->GetPathType() & (PATHFIND_NORMAL | PATHFIND_SHORTCUT))
-            {
-                pos.m_positionX = m_preGeneratedPath->GetActualEndPosition().x;
-                pos.m_positionY = m_preGeneratedPath->GetActualEndPosition().y;
-                pos.m_positionZ = m_preGeneratedPath->GetActualEndPosition().z;
-                dest.Relocate(pos);
-            }
+            dest.Relocate(pos);
             break;
         }
         default:
@@ -2423,10 +2409,12 @@ void Spell::TargetInfo::DoDamageAndTriggers(Spell* spell)
 
         // All calculated do it!
         // Do healing
+        bool hasHealing = false;
         std::unique_ptr<DamageInfo> spellDamageInfo;
         std::unique_ptr<HealInfo> healInfo;
         if (spell->m_healing > 0)
         {
+            hasHealing = true;
             uint32 addhealth = spell->m_healing;
             if (IsCrit)
             {
@@ -2445,8 +2433,10 @@ void Spell::TargetInfo::DoDamageAndTriggers(Spell* spell)
         }
 
         // Do damage
+        bool hasDamage = false;
         if (spell->m_damage > 0)
         {
+            hasDamage = true;
             // Fill base damage struct (unitTarget - is real spell target)
             SpellNonMeleeDamage damageInfo(caster, spell->unitTarget, spell->m_spellInfo->Id, spell->m_spellSchoolMask);
             // Check damage immunity
@@ -2478,15 +2468,11 @@ void Spell::TargetInfo::DoDamageAndTriggers(Spell* spell)
             {
                 spellDamageInfo = std::make_unique<DamageInfo>(damageInfo, SPELL_DIRECT_DAMAGE, spell->m_attackType, hitMask);
                 procSpellType |= PROC_SPELL_TYPE_DAMAGE;
-
-                if (caster->GetTypeId() == TYPEID_PLAYER && !spell->m_spellInfo->HasAttribute(SPELL_ATTR0_STOP_ATTACK_TARGET) && !spell->m_spellInfo->HasAttribute(SPELL_ATTR4_CANT_TRIGGER_ITEM_SPELLS) &&
-                    (spell->m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE || spell->m_spellInfo->DmgClass == SPELL_DAMAGE_CLASS_RANGED))
-                    caster->ToPlayer()->CastItemCombatSpell(*spellDamageInfo);
             }
         }
 
         // Passive spell hits/misses or active spells only misses (only triggers)
-        if (spell->m_damage <= 0 && spell->m_healing <= 0)
+        if (!hasHealing && !hasDamage)
         {
             // Fill base damage struct (unitTarget - is real spell target)
             SpellNonMeleeDamage damageInfo(caster, spell->unitTarget, spell->m_spellInfo->Id, spell->m_spellSchoolMask);
@@ -3450,6 +3436,11 @@ void Spell::_cast(bool skipCheck)
         hitMask |= PROC_HIT_NORMAL;
 
     Unit::ProcSkillsAndAuras(m_originalCaster, nullptr, procAttacker, PROC_FLAG_NONE, PROC_SPELL_TYPE_MASK_ALL, PROC_SPELL_PHASE_CAST, hitMask, this, nullptr, nullptr);
+
+    // Call CreatureAI hook OnSuccessfulSpellCast
+    if (Creature* caster = m_originalCaster->ToCreature())
+        if (caster->IsAIEnabled())
+            caster->AI()->OnSuccessfulSpellCast(GetSpellInfo());
 }
 
 template <class Container>
@@ -3814,7 +3805,7 @@ void Spell::finish(bool ok)
         SpellInfo const* spellInfo = sSpellMgr->GetSpellInfo(spell);
         if (spellInfo && spellInfo->SpellIconID == 2056)
         {
-            TC_LOG_DEBUG("spells", "Statue %d is unsummoned in spell %d finish", unitCaster->GetGUID().GetCounter(), m_spellInfo->Id);
+            TC_LOG_DEBUG("spells", "Statue %s is unsummoned in spell %d finish", unitCaster->GetGUID().ToString().c_str(), m_spellInfo->Id);
             // Avoid infinite loops with setDeathState(JUST_DIED) being called over and over
             // It might make sense to do this check in Unit::setDeathState() and all overloaded functions
             if(unitCaster->getDeathState() != JUST_DIED)
@@ -4080,6 +4071,23 @@ void Spell::SendPetCastResult(SpellCastResult result)
     WriteCastResultInfo(data, player, m_spellInfo, m_cast_count, result, m_customError);
 
     player->SendDirectMessage(&data);
+}
+
+void Spell::SendMountResult(MountResult result)
+{
+    if (result == MountResult::Ok)
+        return;
+
+    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+        return;
+
+    Player* caster = m_caster->ToPlayer();
+    if (caster->IsLoading())  // don't send mount results at loading time
+        return;
+
+    WorldPackets::Spells::MountResult packet;
+    packet.Result = AsUnderlyingType(result);
+    caster->SendDirectMessage(packet.Write());
 }
 
 void Spell::SendSpellStart()
@@ -5186,7 +5194,9 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
     {
         // Check explicit target for m_originalCaster - todo: get rid of such workarounds
         WorldObject* caster = m_caster;
-        if (m_originalCaster)
+        // in case of gameobjects like traps, we need the gameobject itself to check target validity
+        // otherwise, if originalCaster is far away and cannot detect the target, the trap would not hit the target
+        if (m_originalCaster && !caster->ToGameObject())
             caster = m_originalCaster;
 
         SpellCastResult castResult = m_spellInfo->CheckExplicitTarget(caster, m_targets.GetObjectTarget(), m_targets.GetItemTarget());
@@ -5381,6 +5391,8 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
         }
     }
 
+    uint8 approximateAuraEffectMask = 0;
+    uint8 nonAuraEffectMask = 0;
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
         // for effects of spells that have only one target
@@ -5507,7 +5519,7 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                     m_preGeneratedPath->SetPathLengthLimit(range);
 
                     // first try with raycast, if it fails fall back to normal path
-                    bool result = m_preGeneratedPath->CalculatePath(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), false, false);
+                    bool result = m_preGeneratedPath->CalculatePath(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), false);
                     if (m_preGeneratedPath->GetPathType() & PATHFIND_SHORT)
                         return SPELL_FAILED_NOPATH;
                     else if (!result || m_preGeneratedPath->GetPathType() & (PATHFIND_NOPATH | PATHFIND_INCOMPLETE))
@@ -5799,6 +5811,11 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
             default:
                 break;
         }
+
+        if (m_spellInfo->Effects[i].IsAura())
+            approximateAuraEffectMask |= 1 << i;
+        else if (m_spellInfo->Effects[i].IsEffect())
+            nonAuraEffectMask |= 1 << i;
     }
 
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
@@ -5878,7 +5895,10 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
                     return SPELL_FAILED_NO_MOUNTS_ALLOWED;
 
                 if (unitCaster->IsInDisallowedMountForm())
-                    return SPELL_FAILED_NOT_SHAPESHIFT;
+                {
+                    SendMountResult(MountResult::Shapeshifted); // mount result gets sent before the cast result
+                    return SPELL_FAILED_DONT_REPORT;
+                }
                 break;
             }
             case SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS:
@@ -5923,6 +5943,13 @@ SpellCastResult Spell::CheckCast(bool strict, uint32* param1 /*= nullptr*/, uint
             default:
                 break;
         }
+
+        // check if target already has the same type, but more powerful aura
+        if (!nonAuraEffectMask && (approximateAuraEffectMask & (1 << i)) && !m_spellInfo->IsTargetingArea())
+            if (Unit* target = m_targets.GetUnitTarget())
+                if (!target->IsHighestExclusiveAuraEffect(m_spellInfo, AuraType(m_spellInfo->Effects[i].ApplyAuraName),
+                    m_spellInfo->Effects[i].CalcValue(m_caster, &m_spellValue->EffectBasePoints[i]), approximateAuraEffectMask, false))
+                    return SPELL_FAILED_AURA_BOUNCED;
     }
 
     // check trade slot case (last, for allow catch any another cast problems)
@@ -6107,6 +6134,8 @@ SpellCastResult Spell::CheckCasterAuras(uint32* param1) const
                 result = mechanicResult;
         }
         else if (!CheckSpellCancelsStun(param1))
+            result = SPELL_FAILED_STUNNED;
+        else if ((m_spellInfo->Mechanic & MECHANIC_IMMUNE_SHIELD) && m_caster->ToUnit() && m_caster->ToUnit()->HasAuraWithMechanic(1 << MECHANIC_BANISH))
             result = SPELL_FAILED_STUNNED;
     }
     else if (unitflag & UNIT_FLAG_SILENCED && m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE && !CheckSpellCancelsSilence(param1))
@@ -6630,13 +6659,17 @@ SpellCastResult Spell::CheckItems(uint32* param1 /*= nullptr*/, uint32* param2 /
 
                     if (m_spellInfo->Effects[i].ItemType)
                     {
+                        ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(m_spellInfo->Effects[i].ItemType);
+                        if (!itemTemplate)
+                            return SPELL_FAILED_ITEM_NOT_FOUND;
+
+                        uint32 createCount = std::clamp<uint32>(m_spellInfo->Effects[i].CalcValue(), 1u, itemTemplate->GetMaxStackSize());
                         ItemPosCountVec dest;
-                        InventoryResult msg = target->ToPlayer()->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, m_spellInfo->Effects[i].ItemType, m_spellInfo->Effects[i].CalcValue());
+                        InventoryResult msg = target->ToPlayer()->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, m_spellInfo->Effects[i].ItemType, createCount);
                         if (msg != EQUIP_ERR_OK)
                         {
-                            ItemTemplate const* itemTemplate = sObjectMgr->GetItemTemplate(m_spellInfo->Effects[i].ItemType);
                             /// @todo Needs review
-                            if (itemTemplate && !itemTemplate->ItemLimitCategory)
+                            if (!itemTemplate->ItemLimitCategory)
                             {
                                 player->SendEquipError(msg, nullptr, nullptr, m_spellInfo->Effects[i].ItemType);
                                 return SPELL_FAILED_DONT_REPORT;
@@ -7146,7 +7179,7 @@ bool Spell::CheckEffectTarget(Unit const* target, uint32 eff, Position const* lo
         case SPELL_AURA_MOD_CHARM:
         case SPELL_AURA_MOD_POSSESS_PET:
         case SPELL_AURA_AOE_CHARM:
-            if (target->GetTypeId() == TYPEID_UNIT && target->IsVehicle())
+            if (target->GetVehicleKit() && target->GetVehicleKit()->IsControllableVehicle())
                 return false;
             if (target->IsMounted())
                 return false;
@@ -7308,8 +7341,8 @@ SpellEvent::~SpellEvent()
     }
     else
     {
-        TC_LOG_ERROR("spells", "~SpellEvent: %s %u tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
-            (m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), m_Spell->GetCaster()->GetGUID().GetCounter(), m_Spell->m_spellInfo->Id);
+        TC_LOG_ERROR("spells", "~SpellEvent: %s %s tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
+            (m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), m_Spell->GetCaster()->GetGUID().ToString().c_str(), m_Spell->m_spellInfo->Id);
         ABORT();
     }
 }
