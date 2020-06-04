@@ -1,4 +1,4 @@
-﻿
+
 #include "ScriptMgr.h"
 #include "Containers.h"
 #include "DBCStores.h"
@@ -32,7 +32,7 @@ public:
         char* GetRandomBye() {
             switch (irand(0, 3)) {
             default:
-                return "后会有期";
+                return "????";
             }
         }
 
@@ -61,12 +61,12 @@ public:
             }
 
             if (target == nullptr || target->GetEntry() >= 46000 || target->GetEntry() < 45000 ) {
-                player->GetSession()->SendAreaTriggerMessage("必须选择一个魔兽英雄");
+                player->GetSession()->SendAreaTriggerMessage("??????????");
                 return;
             }
 
             if (target->GetOwner() != player) {
-                player->GetSession()->SendAreaTriggerMessage("必须选择自己的魔兽英雄");
+                player->GetSession()->SendAreaTriggerMessage("???????????");
                 return;
             }
 
@@ -288,7 +288,7 @@ public:
 };
 
 
-void AddSC_assistance_spells_script()
+void AddSC_war3_hero_spells_script()
 {
     new spell_assistance_close_to_me();
     new spell_assistance_dismiss();
