@@ -20,6 +20,7 @@
 #include "MotionMaster.h"
 #include "WorldSession.h"
 
+
 class spell_assistance_dismiss : public SpellScriptLoader
 {
 public:
@@ -60,7 +61,7 @@ public:
                 return;
             }
 
-            if (target == nullptr || target->GetEntry() >= 46000 || target->GetEntry() < 45000 ) {
+            if (target == nullptr || target->GetEntry() >= 46000 || target->GetEntry() < 45000) {
                 player->GetSession()->SendAreaTriggerMessage("必须选择一个魔兽英雄");
                 return;
             }
@@ -84,6 +85,7 @@ public:
         return new spell_assistance_dismiss_SpellScript();
     }
 };
+
 
 class spell_assistance_final_skill : public SpellScriptLoader
 {

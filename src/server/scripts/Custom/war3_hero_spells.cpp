@@ -19,280 +19,210 @@
 #include "Random.h"
 #include "MotionMaster.h"
 #include "WorldSession.h"
+#include "GridNotifiers.h"
+#include "GridNotifiersImpl.h"
+#include "Cell.h"
+#include "CellImpl.h"
 
-class spell_assistance_dismiss : public SpellScriptLoader
+class spell_army_teleport : public SpellScriptLoader
 {
 public:
-    spell_assistance_dismiss() : SpellScriptLoader("spell_assistance_dismiss") { }
+    spell_army_teleport() : SpellScriptLoader("spell_army_teleport") { }
 
-    class spell_assistance_dismiss_SpellScript : public SpellScript
+    class spell_army_teleport_SpellScript : public SpellScript
     {
-        PrepareSpellScript(spell_assistance_dismiss_SpellScript);
+        PrepareSpellScript(spell_army_teleport_SpellScript);
 
-        char* GetRandomBye() {
-            switch (irand(0, 3)) {
-            default:
-                return "????";
+        void HandleAfterCast() {
+            Unit* caster = GetCaster();
+
+            for (int i = 85903; i <= 85906; i++) {
+                caster->CastSpell(caster, i);
             }
-        }
-
-        void Dismiss(Creature* p, Player* owner) {
-            if (!p)
-                return;
-
-            p->CastStop();
-            p->StopMoving();
-            p->GetMotionMaster()->Clear();
-            p->CastSpell(p, 62940);
-            p->SetFacingToObject(owner);
-            p->Say(GetRandomBye(), Language::LANG_COMMON, owner);
-            p->DespawnOrUnsummon(1050);
-            AssistanceAI* ai = (AssistanceAI*)p->GetAI();
-            ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_PASSIVE;
-        }
-
-        void HandleAfterCast()
-        {
-            Player* player = this->GetCaster()->ToPlayer();
-            Unit* target = player->GetSelectedUnit();
-
-            if (player == nullptr) {
-                return;
-            }
-
-            if (target == nullptr || target->GetEntry() >= 46000 || target->GetEntry() < 45000 ) {
-                player->GetSession()->SendAreaTriggerMessage("??????????");
-                return;
-            }
-
-            if (target->GetOwner() != player) {
-                player->GetSession()->SendAreaTriggerMessage("???????????");
-                return;
-            }
-
-            Dismiss((Creature*)target, player);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_assistance_dismiss_SpellScript::HandleAfterCast);
+            AfterCast += SpellCastFn(spell_army_teleport_SpellScript::HandleAfterCast);
         }
     };
 
     SpellScript* GetSpellScript() const override
     {
-        return new spell_assistance_dismiss_SpellScript();
-    }
-};
-
-class spell_assistance_final_skill : public SpellScriptLoader
-{
-public:
-    spell_assistance_final_skill() : SpellScriptLoader("spell_assistance_final_skill") { }
-
-    class spell_assistance_final_skill_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_assistance_final_skill_SpellScript);
-
-        SpellCastResult HandleCheckCast() {
-            Spell* spell = GetSpell();
-            Player* player = this->GetCaster()->ToPlayer();
-            SpellCastResult result = SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-            Unit* target = spell->m_targets.GetObjectTarget()->ToUnit();
-            Unit* victim;
-
-            if (!player || !target || player != target->GetOwner()) {
-                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-            }
-            Creature* t = target->ToCreature();
-            if (!t) {
-                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-            }
-
-            victim = target->GetVictim();
-            if (!victim) {
-                victim = ObjectAccessor::GetUnit(*target, target->GetTarget());
-            }
-
-            switch (target->GetEntry()) {
-            case 45001: // Warden
-                result = target->CastSpell(target, 85893);
-                break;
-            case 45002: // Shadow Shaman
-                result = target->CastSpell(target, 85918);
-                if (result == SpellCastResult::SPELL_CAST_OK) {
-                    target->HandleEmoteCommand(EMOTE_STATE_DANCE);
-                }
-                break;
-            case 45003: // Mage
-                result = target->CastSpell(target, 85908);
-                break;
-            case 45005: // Lich
-                if (victim)
-                    result = target->CastSpell(victim->GetPosition(), 85942);
-                else
-                    result = target->CastSpell(target->GetPosition(), 85942);
-                break;
-            case 45007: // Paladin
-                result = target->CastSpell(target, 85943);
-                break;
-            case 45008: // Dradlord
-                if (victim)
-                    result = target->CastSpell(victim->GetPosition(), 85854);
-                else
-                    result = target->CastSpell(target->GetPosition(), 85854);
-                break;
-            case 45010: // Forest Guard
-                result = target->CastSpell(target, 85934);
-                break;
-            case 45013: // Blade Master
-                result = target->CastSpell(target, 85897);
-                break;
-            default:
-                ;
-            }
-
-            return result;
-        }
-
-        void Register() override
-        {
-            OnCheckCast += SpellCheckCastFn(spell_assistance_final_skill_SpellScript::HandleCheckCast);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_assistance_final_skill_SpellScript();
+        return new spell_army_teleport_SpellScript();
     }
 };
 
 
-class spell_assistance_attack_as_will : public SpellScriptLoader
+class spell_dark_ceremony : public SpellScriptLoader
 {
 public:
-    spell_assistance_attack_as_will() : SpellScriptLoader("spell_assistance_attack_as_will") { }
+    spell_dark_ceremony() : SpellScriptLoader("spell_dark_ceremony") { }
 
-    class spell_assistance_attack_as_will_SpellScript : public SpellScript
+    class spell_dark_ceremony_SpellScript : public SpellScript
     {
-        PrepareSpellScript(spell_assistance_attack_as_will_SpellScript);
-
-
-        void SetFlag(Creature* target) {
-            AssistanceAI* ai = (AssistanceAI*)target->GetAI();
-            ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_NONE;
-        }
+        PrepareSpellScript(spell_dark_ceremony_SpellScript);
 
         void HandleAfterCast()
         {
-            Player* owner = (Player*)this->GetCaster();
-            Unit* target = owner->GetSelectedUnit();
+            Unit* caster = this->GetCaster();
+            Unit* target = GetSpell()->m_targets.GetUnitTarget();
 
-
-        }
-
-        void Register() override
-        {
-            AfterCast += SpellCastFn(spell_assistance_attack_as_will_SpellScript::HandleAfterCast);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_assistance_attack_as_will_SpellScript();
-    }
-};
-
-class spell_assistance_teleport_to_me : public SpellScriptLoader
-{
-public:
-    spell_assistance_teleport_to_me() : SpellScriptLoader("spell_assistance_teleport_to_me") { }
-
-    class spell_assistance_teleport_to_me_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_assistance_teleport_to_me_SpellScript);
-
-        void HandleAfterCast()
-        {
-            Player* caster = GetCaster()->ToPlayer();
-
-            if (caster == nullptr) {
+            if (!target || !caster)
                 return;
-            }
 
-            int spells[5] = { 86001 ,85980,85990,85970 };
+            caster->SetPower(POWER_MANA, target->GetMaxHealth()/50 + 50);
+            caster->DealDamage(caster, target, target->GetMaxHealth() / 10);
+        }
 
-            for (int i = 0; i < 5; i++) {
-                Aura* arua = caster->GetAura(spells[i]);
-                if (arua == nullptr)
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_dark_ceremony_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_dark_ceremony_SpellScript();
+    }
+};
+
+Unit* SelectMostHpPctFriedly(Unit* who, float range) {
+    Unit* unit = nullptr;
+    Trinity::AllFriendlyCorpseInGrid u_check(who);
+    Trinity::UnitLastSearcher<Trinity::AllFriendlyCorpseInGrid> searcher(who, unit, u_check);
+    Cell::VisitAllObjects(who, searcher, range);
+
+    return unit;
+}
+
+class spell_palading_rise_ally : public SpellScriptLoader
+{
+public:
+    spell_palading_rise_ally() : SpellScriptLoader("spell_palading_rise_ally") { }
+
+    class spell_palading_rise_ally_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_palading_rise_ally_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Unit* caster = GetCaster();
+
+            std::vector<Creature*> tempList;
+
+            Trinity::AllFriendlyCorpseInGrid check(caster);
+            Trinity::CreatureListSearcher<Trinity::AllFriendlyCorpseInGrid> searcher(caster, tempList, check);
+            Cell::VisitGridObjects(caster, searcher, 40.0f);
+
+            if (tempList.empty())
+                return;
+
+            for (Creature* creature : tempList)
+            {
+                if (creature->GetEntry() < 45000)
                     continue;
 
-                Unit* assistance = arua->GetCaster();
-                if (assistance && assistance->IsAlive() && assistance->GetOwner() == caster) {
-                    assistance->NearTeleportTo(caster->GetPosition());
-                }
+                AssistanceAI* ai = (AssistanceAI*)creature->GetAI();
+                ai->Reborn(100);
             }
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_assistance_teleport_to_me_SpellScript::HandleAfterCast);
+            AfterCast += SpellCastFn(spell_palading_rise_ally_SpellScript::HandleAfterCast);
         }
     };
 
     SpellScript* GetSpellScript() const override
     {
-        return new spell_assistance_teleport_to_me_SpellScript();
+        return new spell_palading_rise_ally_SpellScript();
     }
 };
 
-
-class spell_assistance_close_to_me : public SpellScriptLoader
+class spell_dark_ranger_black_bolt : public SpellScriptLoader
 {
 public:
-    spell_assistance_close_to_me() : SpellScriptLoader("spell_assistance_close_to_me") { }
+    spell_dark_ranger_black_bolt() : SpellScriptLoader("spell_dark_ranger_black_bolt") { }
 
-    class spell_assistance_close_to_me_SpellScript : public SpellScript
+    class spell_dark_ranger_black_bolt_AuraScript : public AuraScript
     {
-        PrepareSpellScript(spell_assistance_close_to_me_SpellScript);
+        PrepareAuraScript(spell_dark_ranger_black_bolt_AuraScript);
 
-        void SetFollow(Creature* target, Player* owner) {
-            if (target == nullptr)
-                return;
-
-            //target->Say("", ChatMsg::CHAT_MSG_MONSTER_SAY, Language::LANG_COMMON);
-            target->GetMotionMaster()->Clear();
-            target->GetMotionMaster()->MoveFollow(owner, 1.0f, target->GetFollowAngle());
-            AssistanceAI* ai = (AssistanceAI*)target->GetAI();
-            ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_PASSIVE;
-            target->AttackStop();
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return true;
         }
 
-        void HandleAfterCast()
+        bool Load() override
         {
-            Player* owner = (Player*)this->GetCaster();
-            Unit* target = owner->GetSelectedUnit();
+            return GetCaster();
+        }
 
+        void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        {
+            if (!GetCaster())
+                return;
+
+            AuraRemoveMode removeMode = GetTargetApplication()->GetRemoveMode();
+            if (removeMode != AURA_REMOVE_BY_DEATH || !IsExpired())
+                return;
+
+            GetCaster()->CastSpell(GetTarget(), 85921, aurEff);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_assistance_close_to_me_SpellScript::HandleAfterCast);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_dark_ranger_black_bolt_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_DEFAULT);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_dark_ranger_black_bolt_AuraScript();
+    }
+};
+
+class spell_death_contract : public SpellScriptLoader
+{
+public:
+    spell_death_contract() : SpellScriptLoader("spell_death_contract") { }
+
+    class spell_death_contract_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_death_contract_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Unit* caster = GetCaster();
+            Unit* target = GetSpell()->m_targets.GetUnitTarget();
+
+            if (!target) {
+                return;
+            }
+
+            HealInfo info(caster, caster, target->GetHealth()*3, GetSpell()->m_spellInfo, SpellSchoolMask::SPELL_SCHOOL_MASK_SHADOW);
+            caster->HealBySpell(info, false);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_death_contract_SpellScript::HandleAfterCast);
         }
     };
 
     SpellScript* GetSpellScript() const override
     {
-        return new spell_assistance_close_to_me_SpellScript();
+        return new spell_death_contract_SpellScript();
     }
 };
 
 
 void AddSC_war3_hero_spells_script()
 {
-    new spell_assistance_close_to_me();
-    new spell_assistance_dismiss();
-    new spell_assistance_attack_as_will();
-    new spell_assistance_teleport_to_me();
-    new spell_assistance_final_skill();
+    new spell_army_teleport();
+    new spell_dark_ceremony();
+    new spell_dark_ranger_black_bolt();
+    new spell_death_contract();
+    new spell_palading_rise_ally();
 }

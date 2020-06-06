@@ -1,4 +1,4 @@
-﻿
+
 #include "ScriptMgr.h"
 #include "Containers.h"
 #include "DBCStores.h"
@@ -20,279 +20,278 @@
 #include "MotionMaster.h"
 #include "WorldSession.h"
 
-class spell_assistance_dismiss : public SpellScriptLoader
+class spell_sunwell_power : public SpellScriptLoader
 {
 public:
-    spell_assistance_dismiss() : SpellScriptLoader("spell_assistance_dismiss") { }
+    spell_sunwell_power() : SpellScriptLoader("spell_sunwell_power") { }
 
-    class spell_assistance_dismiss_SpellScript : public SpellScript
+    class spell_sunwell_power_SpellScript : public SpellScript
     {
-        PrepareSpellScript(spell_assistance_dismiss_SpellScript);
-
-        char* GetRandomBye() {
-            switch (irand(0, 3)) {
-            default:
-                return "后会有期";
-            }
-        }
-
-        void Dismiss(Creature* p, Player* owner) {
-            if (!p)
-                return;
-
-            p->CastStop();
-            p->StopMoving();
-            p->GetMotionMaster()->Clear();
-            p->CastSpell(p, 62940);
-            p->SetFacingToObject(owner);
-            p->Say(GetRandomBye(), Language::LANG_COMMON, owner);
-            p->DespawnOrUnsummon(1050);
-            AssistanceAI* ai = (AssistanceAI*)p->GetAI();
-            ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_PASSIVE;
-        }
+        PrepareSpellScript(spell_sunwell_power_SpellScript);
 
         void HandleAfterCast()
         {
             Player* player = this->GetCaster()->ToPlayer();
-            Unit* target = player->GetSelectedUnit();
+            uint32 count = 1;
 
             if (player == nullptr) {
                 return;
             }
 
-            if (target == nullptr || target->GetEntry() >= 46000 || target->GetEntry() < 45000 ) {
-                player->GetSession()->SendAreaTriggerMessage("必须选择一个魔兽英雄");
-                return;
-            }
+            Aura* aura = player->GetAura(87203);
+            CastSpellExtraArgs args;
+            if (aura)
+                count += aura->GetStackAmount() * 2;
 
-            if (target->GetOwner() != player) {
-                player->GetSession()->SendAreaTriggerMessage("必须选择自己的魔兽英雄");
-                return;
-            }
-
-            Dismiss((Creature*)target, player);
+            Aura* thisAura = player->GetAura(87204);
+            if (thisAura)
+                thisAura->SetStackAmount(count);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_assistance_dismiss_SpellScript::HandleAfterCast);
+            BeforeCast += SpellCastFn(spell_sunwell_power_SpellScript::HandleAfterCast);
         }
     };
 
     SpellScript* GetSpellScript() const override
     {
-        return new spell_assistance_dismiss_SpellScript();
+        return new spell_sunwell_power_SpellScript();
     }
 };
 
-class spell_assistance_final_skill : public SpellScriptLoader
+class spell_smart_chicken_aura : public SpellScriptLoader
 {
 public:
-    spell_assistance_final_skill() : SpellScriptLoader("spell_assistance_final_skill") { }
+    spell_smart_chicken_aura() : SpellScriptLoader("spell_smart_chicken_aura") { }
 
-    class spell_assistance_final_skill_SpellScript : public SpellScript
+
+    class spell_smart_chicken_aura_AuraScript : public AuraScript
     {
-        PrepareSpellScript(spell_assistance_final_skill_SpellScript);
+        PrepareAuraScript(spell_smart_chicken_aura_AuraScript);
 
-        SpellCastResult HandleCheckCast() {
-            Spell* spell = GetSpell();
-            Player* player = this->GetCaster()->ToPlayer();
-            SpellCastResult result = SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-            Unit* target = spell->m_targets.GetObjectTarget()->ToUnit();
-            Unit* victim;
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return true;
+        }
 
-            if (!player || !target || player != target->GetOwner()) {
+        void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+            Player* teacher = eventInfo.GetActor()->ToPlayer();
+
+            if (teacher == nullptr)
+                return;
+
+            Aura* learn = teacher->GetAura(87209);
+            if (learn == nullptr)
+                return;
+            Unit* chicken = learn->GetCaster();
+
+            const Spell* sp = eventInfo.GetProcSpell();
+            chicken->CastSpell(sp->m_targets, sp->GetSpellInfo()->Id);
+        }
+
+        void Register() override
+        {
+            OnEffectProc += AuraEffectProcFn(spell_smart_chicken_aura_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_smart_chicken_aura_AuraScript();
+    }
+};
+
+
+class spell_draenei_mage : public SpellScriptLoader
+{
+public:
+    spell_draenei_mage() : SpellScriptLoader("spell_draenei_mage") { }
+
+    class spell_draenei_mage_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_draenei_mage_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Player* owner = this->GetCaster()->ToPlayer();
+            if (!owner)
+                return;
+
+            Aura* aura = owner->GetAura(87217);
+            if (!aura)
+                return;
+
+            CastSpellExtraArgs args;
+            uint32 auraCount = aura->GetStackAmount();
+
+            float intl = owner->GetStat(STAT_INTELLECT);
+            args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT0, intl*auraCount/14);
+            owner->CastSpell(GetSpell()->m_targets, 87219, args);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_draenei_mage_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_draenei_mage_SpellScript();
+    }
+};
+
+class spell_wild_imp_enhance_master : public SpellScriptLoader
+{
+public:
+    spell_wild_imp_enhance_master() : SpellScriptLoader("spell_wild_imp_enhance_master") { }
+
+    class spell_wild_imp_enhance_master_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_wild_imp_enhance_master_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Unit* caster = GetCaster();
+
+            caster->CastSpell(caster, 8329);
+        }
+
+        void Register() override
+        {
+            AfterHit += SpellHitFn(spell_wild_imp_enhance_master_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_wild_imp_enhance_master_SpellScript();
+    }
+};
+
+void SummonRandomDemon(Unit* caster) {
+    int index = rand() % 7;
+    int spells[] = {87251, 87254, 87255, 87256, 87264, 87271, 87272};
+
+    if (index == 0) {
+        CastSpellExtraArgs args;
+        args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT0, 3);
+        caster->CastSpell(caster, spells[index], args);
+    }
+    else {
+        caster->CastSpell(caster, spells[index]);
+    }
+}
+
+class spell_gnome_warlock : public SpellScriptLoader
+{
+public:
+    spell_gnome_warlock() : SpellScriptLoader("spell_gnome_warlock") { }
+
+    class spell_gnome_warlock_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_gnome_warlock_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Player* owner = GetCaster()->ToPlayer();
+            if (!owner)
+                return;
+
+            SummonRandomDemon(owner);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_gnome_warlock_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_gnome_warlock_SpellScript();
+    }
+}; 
+
+class spell_bloodelf_warlock : public SpellScriptLoader
+{
+public:
+    spell_bloodelf_warlock() : SpellScriptLoader("spell_bloodelf_warlock") { }
+
+    class spell_bloodelf_warlock_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_bloodelf_warlock_SpellScript);
+
+        int GetCostCount(Unit* caster, uint32* auraStack) {
+        }
+
+        SpellCastResult CheckCastHandler() {
+            Unit* caster = GetCaster();
+            Player* player = caster->ToPlayer();
+            uint32 auraStack = 0;
+            Aura* aura;
+
+            if (!player)
                 return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-            }
-            Creature* t = target->ToCreature();
-            if (!t) {
-                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-            }
 
-            victim = target->GetVictim();
-            if (!victim) {
-                victim = ObjectAccessor::GetUnit(*target, target->GetTarget());
-            }
+            aura = caster->GetAura(87270);
+            uint32 cost;
 
-            switch (target->GetEntry()) {
-            case 45001: // Warden
-                result = target->CastSpell(target, 85893);
-                break;
-            case 45002: // Shadow Shaman
-                result = target->CastSpell(target, 85918);
-                if (result == SpellCastResult::SPELL_CAST_OK) {
-                    target->HandleEmoteCommand(EMOTE_STATE_DANCE);
-                }
-                break;
-            case 45003: // Mage
-                result = target->CastSpell(target, 85908);
-                break;
-            case 45005: // Lich
-                if (victim)
-                    result = target->CastSpell(victim->GetPosition(), 85942);
-                else
-                    result = target->CastSpell(target->GetPosition(), 85942);
-                break;
-            case 45007: // Paladin
-                result = target->CastSpell(target, 85943);
-                break;
-            case 45008: // Dradlord
-                if (victim)
-                    result = target->CastSpell(victim->GetPosition(), 85854);
-                else
-                    result = target->CastSpell(target->GetPosition(), 85854);
-                break;
-            case 45010: // Forest Guard
-                result = target->CastSpell(target, 85934);
-                break;
-            case 45013: // Blade Master
-                result = target->CastSpell(target, 85897);
-                break;
-            default:
-                ;
+            if (aura == nullptr) {
+                cost = 0;
+            }
+            else {
+                auraStack = aura->GetStackAmount();
+                cost = std::pow(2, auraStack - 1);
             }
 
-            return result;
-        }
+            uint32 count = player->GetItemCount(6265);
+            if (cost > count) {
+                return SPELL_FAILED_NEED_MORE_ITEMS;
+            }
 
-        void Register() override
-        {
-            OnCheckCast += SpellCheckCastFn(spell_assistance_final_skill_SpellScript::HandleCheckCast);
-        }
-    };
+            if (auraStack == 0) {
+                caster->CastSpell(caster, 87270);
+            }
+            else {
+                aura->SetStackAmount(auraStack + 1);
+            }
 
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_assistance_final_skill_SpellScript();
-    }
-};
-
-
-class spell_assistance_attack_as_will : public SpellScriptLoader
-{
-public:
-    spell_assistance_attack_as_will() : SpellScriptLoader("spell_assistance_attack_as_will") { }
-
-    class spell_assistance_attack_as_will_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_assistance_attack_as_will_SpellScript);
-
-
-        void SetFlag(Creature* target) {
-            AssistanceAI* ai = (AssistanceAI*)target->GetAI();
-            ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_NONE;
+            player->DestroyItemCount(player->GetItemByEntry(6265), cost, true);
+            return SPELL_CAST_OK;
         }
 
         void HandleAfterCast()
         {
-            Player* owner = (Player*)this->GetCaster();
-            Unit* target = owner->GetSelectedUnit();
-
-
-        }
-
-        void Register() override
-        {
-            AfterCast += SpellCastFn(spell_assistance_attack_as_will_SpellScript::HandleAfterCast);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_assistance_attack_as_will_SpellScript();
-    }
-};
-
-class spell_assistance_teleport_to_me : public SpellScriptLoader
-{
-public:
-    spell_assistance_teleport_to_me() : SpellScriptLoader("spell_assistance_teleport_to_me") { }
-
-    class spell_assistance_teleport_to_me_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_assistance_teleport_to_me_SpellScript);
-
-        void HandleAfterCast()
-        {
-            Player* caster = GetCaster()->ToPlayer();
-
-            if (caster == nullptr) {
-                return;
-            }
-
-            int spells[5] = { 86001 ,85980,85990,85970 };
-
-            for (int i = 0; i < 5; i++) {
-                Aura* arua = caster->GetAura(spells[i]);
-                if (arua == nullptr)
-                    continue;
-
-                Unit* assistance = arua->GetCaster();
-                if (assistance && assistance->IsAlive() && assistance->GetOwner() == caster) {
-                    assistance->NearTeleportTo(caster->GetPosition());
-                }
-            }
-        }
-
-        void Register() override
-        {
-            AfterCast += SpellCastFn(spell_assistance_teleport_to_me_SpellScript::HandleAfterCast);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_assistance_teleport_to_me_SpellScript();
-    }
-};
-
-
-class spell_assistance_close_to_me : public SpellScriptLoader
-{
-public:
-    spell_assistance_close_to_me() : SpellScriptLoader("spell_assistance_close_to_me") { }
-
-    class spell_assistance_close_to_me_SpellScript : public SpellScript
-    {
-        PrepareSpellScript(spell_assistance_close_to_me_SpellScript);
-
-        void SetFollow(Creature* target, Player* owner) {
-            if (target == nullptr)
+            Player* owner = GetCaster()->ToPlayer();
+            if (!owner)
                 return;
 
-            //target->Say("", ChatMsg::CHAT_MSG_MONSTER_SAY, Language::LANG_COMMON);
-            target->GetMotionMaster()->Clear();
-            target->GetMotionMaster()->MoveFollow(owner, 1.0f, target->GetFollowAngle());
-            AssistanceAI* ai = (AssistanceAI*)target->GetAI();
-            ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_PASSIVE;
-            target->AttackStop();
-        }
-
-        void HandleAfterCast()
-        {
-            Player* owner = (Player*)this->GetCaster();
-            Unit* target = owner->GetSelectedUnit();
-
+            SummonRandomDemon(owner);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_assistance_close_to_me_SpellScript::HandleAfterCast);
+            OnCheckCast += SpellCheckCastFn(spell_bloodelf_warlock_SpellScript::CheckCastHandler);
+            AfterCast += SpellCastFn(spell_bloodelf_warlock_SpellScript::HandleAfterCast);
         }
     };
 
     SpellScript* GetSpellScript() const override
     {
-        return new spell_assistance_close_to_me_SpellScript();
+        return new spell_bloodelf_warlock_SpellScript();
     }
 };
 
-
-void AddSC_assistance_spells_script()
+void AddSC_race_telants_script()
 {
-    new spell_assistance_close_to_me();
-    new spell_assistance_dismiss();
-    new spell_assistance_attack_as_will();
-    new spell_assistance_teleport_to_me();
-    new spell_assistance_final_skill();
+    new spell_gnome_warlock();
+    new spell_sunwell_power();
+    new spell_draenei_mage();
+    new spell_wild_imp_enhance_master();
+    new spell_smart_chicken_aura();
+    new spell_bloodelf_warlock();
 }

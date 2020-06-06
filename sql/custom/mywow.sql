@@ -42,7 +42,6 @@ INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `
 INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46000', '0', '87207', '12340');
 UPDATE `world`.`creature_template` SET `HealthModifier`='0.2' WHERE `entry`='46000';
 
-
 -- 侏儒法师
 INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES ('46001', '0', '0', '0', '0', '0', '7920', '0', '0', '0', '聪明的机械小鸡', '', '', '0', '1', '80', '0', '188', '0', '1', '1.14286', '1', '0', '0', '2000', '2200', '1', '1', '1', '0', '2048', '0', '0', '12', '0', '0', '0', '0', '0', '0', '0', '0', 'AssistanceAI', '0', '1', '0.1', '1', '1', '1', '1', '0', '0', '1', '0', '0', '66', 'AssistanceAI', '12340');
 INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46001', '0', '87209', '12340');
@@ -103,8 +102,6 @@ INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `
 INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46016', '0', '87273', '12340');
 INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46016', '1', '87275', '12340');
 INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46015', '0', '87276', '12340');
-
-
 
 -- 人类术士a
 INSERT INTO `world`.`playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES ('1', '9', '9', '87265', '0');
@@ -208,7 +205,6 @@ INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `
 -- 修补匠
 INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES 
 ('45004', '0', '0', '0', '0', '0', '7135', '0', '0', '0', '修补匠', '', '', '0', '1', '80', '0', '29', '2', '1', '1.14286', '1', '0', '0', '2000', '2000', '1', '1', '1', '0', '2048', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', '0', 'AssistanceAI', '0', '1', '1', '1', '1', '1.1', '1', '0', '0', '1', '0', '0', '0', 'AssistanceAI', '12340');
-#'85960', '85962', '0', '0', '0', '0', '0', '0',
 insert into world.creature_template_spell (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('45004', '0', '85970', '12340');
 insert into world.creature_template_spell (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('45004', '1', '85974', '12340');
 insert into world.creature_template_spell (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('45004', '2', '85976', '12340');
@@ -221,7 +217,6 @@ INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `
 -- 巫妖
 INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES 
 ('45005', '0', '0', '0', '0', '0', '16024', '0', '0', '0', '罗宁', '肯瑞托的老师', '', '0', '0', '80', '2', '2007', '2', '1', '1.14286', '0.7', '3', '0', '2000', '2000', '1', '1', '1', '0', '2048', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', '0', 'AssistanceAI', '0', '1', '1', '3', '1', '1', '1', '0', '0', '1', '0', '0', '0', 'AssistanceAI', '12340');
-#'85970', '85976', '85972', '85973', '85974', '85971', '0', '0',
 insert into world.creature_template_spell (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('45005', '0', '85970', '12340');
 insert into world.creature_template_spell (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('45005', '1', '85956', '12340');
 insert into world.creature_template_spell (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('45005', '2', '85954', '12340');

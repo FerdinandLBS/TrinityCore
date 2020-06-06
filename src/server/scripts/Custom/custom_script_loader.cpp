@@ -19,7 +19,9 @@
 
 void AddSC_telebook_script();
 void AddSC_assistance_spells_script();
-void AddSC_mywow_spells_script();
+void AddSC_race_telants_script();
+void AddSC_war3_hero_spells_script();
+void AddSC_legend_items_script();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -27,5 +29,7 @@ void AddCustomScripts()
 {
     AddSC_telebook_script();
     AddSC_assistance_spells_script();
-    AddSC_mywow_spells_script();
+    AddSC_race_telants_script();
+    AddSC_war3_hero_spells_script();
+    AddSC_legend_items_script();
 }
