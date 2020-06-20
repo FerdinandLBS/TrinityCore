@@ -67,12 +67,17 @@ public:
         {
             Unit* caster = this->GetCaster();
             Unit* target = GetSpell()->m_targets.GetUnitTarget();
+            uint32 ratio;
 
             if (!target || !caster)
                 return;
 
-            caster->SetPower(POWER_MANA, target->GetMaxHealth()/50 + 50);
-            caster->DealDamage(caster, target, target->GetMaxHealth() / 10);
+            if (target->GetMaxHealth() < caster->GetMaxHealth() / 2) {
+                ratio = 3;
+            }
+
+            caster->SetPower(POWER_MANA, target->GetMaxHealth()*ratio/50 + 150 + caster->GetPower(POWER_MANA));
+            caster->DealDamage(caster, target, target->GetMaxHealth()*ratio / 10);
         }
 
         void Register() override
@@ -154,18 +159,13 @@ public:
             return true;
         }
 
-        bool Load() override
-        {
-            return GetCaster();
-        }
-
         void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
         {
             if (!GetCaster())
                 return;
 
             AuraRemoveMode removeMode = GetTargetApplication()->GetRemoveMode();
-            if (removeMode != AURA_REMOVE_BY_DEATH || !IsExpired())
+            if (removeMode != AURA_REMOVE_BY_DEATH)
                 return;
 
             GetCaster()->CastSpell(GetTarget(), 85921, aurEff);
@@ -173,7 +173,7 @@ public:
 
         void Register() override
         {
-            AfterEffectRemove += AuraEffectRemoveFn(spell_dark_ranger_black_bolt_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_DEFAULT);
+            AfterEffectRemove += AuraEffectRemoveFn(spell_dark_ranger_black_bolt_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_DUMMY, AURA_EFFECT_HANDLE_REAL);
         }
     };
 
@@ -201,8 +201,7 @@ public:
                 return;
             }
 
-            HealInfo info(caster, caster, target->GetHealth()*3, GetSpell()->m_spellInfo, SpellSchoolMask::SPELL_SCHOOL_MASK_SHADOW);
-            caster->HealBySpell(info, false);
+            caster->SetHealth(caster->GetHealth()+ target->GetMaxHealth() * 3);
         }
 
         void Register() override
@@ -217,6 +216,76 @@ public:
     }
 };
 
+class spell_rain_of_fire : public SpellScriptLoader
+{
+public:
+    spell_rain_of_fire() : SpellScriptLoader("spell_rain_of_fire") { }
+
+    class spell_rain_of_fire_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_rain_of_fire_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return true;
+        }
+
+        void HandleProc(AuraEffect* aurEff)
+        {
+            Unit* caster = GetCaster();
+            if (caster)
+                caster->CastSpell(GetDynobjOwner()->GetPosition(), 85882, true);
+        }
+
+        void Register() override
+        {
+            OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_rain_of_fire_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_rain_of_fire_AuraScript();
+    }
+};
+
+class spell_doom_curse : public SpellScriptLoader
+{
+public:
+    spell_doom_curse() : SpellScriptLoader("spell_doom_curse") { }
+
+    class spell_doom_curse_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_doom_curse_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return true;
+        }
+
+        void OnRemove(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+        {
+            if (!GetCaster())
+                return;
+
+            AuraRemoveMode removeMode = GetTargetApplication()->GetRemoveMode();
+            if (removeMode != AURA_REMOVE_BY_DEATH)
+                return;
+
+            GetCaster()->CastSpell(GetTarget(), 85881, aurEff);
+        }
+
+        void Register() override
+        {
+            AfterEffectRemove += AuraEffectRemoveFn(spell_doom_curse_AuraScript::OnRemove, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE, AURA_EFFECT_HANDLE_REAL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_doom_curse_AuraScript();
+    }
+};
 
 void AddSC_war3_hero_spells_script()
 {
@@ -225,4 +294,6 @@ void AddSC_war3_hero_spells_script()
     new spell_dark_ranger_black_bolt();
     new spell_death_contract();
     new spell_palading_rise_ally();
+    new spell_rain_of_fire();
+    new spell_doom_curse();
 }

@@ -20,6 +20,7 @@
 #include "MotionMaster.h"
 #include "WorldSession.h"
 
+#pragma execution_character_set("utf-8")
 
 class spell_assistance_dismiss : public SpellScriptLoader
 {
@@ -30,8 +31,16 @@ public:
     {
         PrepareSpellScript(spell_assistance_dismiss_SpellScript);
 
-        char* GetRandomBye() {
+        const char* GetRandomBye() {
             switch (irand(0, 3)) {
+            case 0:
+                return "再见";
+            case 1:
+                return "你自己保重";
+            case 2:
+                return "我要去休息一下了";
+            case 3:
+                return "....";
             default:
                 return "后会有期";
             }
@@ -44,10 +53,15 @@ public:
             p->CastStop();
             p->StopMoving();
             p->GetMotionMaster()->Clear();
-            p->CastSpell(p, 62940);
-            p->SetFacingToObject(owner);
-            p->Say(GetRandomBye(), Language::LANG_COMMON, owner);
-            p->DespawnOrUnsummon(1050);
+            if (p->IsAlive()) {
+                p->CastSpell(p, 62940);
+                p->SetFacingToObject(owner);
+                p->Say(GetRandomBye(), Language::LANG_UNIVERSAL, owner);
+                p->DespawnOrUnsummon(1050);
+            }
+            else {
+                p->DespawnOrUnsummon(0);
+            }
             AssistanceAI* ai = (AssistanceAI*)p->GetAI();
             ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_PASSIVE;
         }
@@ -150,6 +164,12 @@ public:
             case 45013: // Blade Master
                 result = target->CastSpell(target, 85897);
                 break;
+            case 45014: // Pitlord
+                result = target->CastSpell(victim, 85883);
+                break;
+            case 45016: // Blood Mage
+                result = target->CastSpell(target, 85869);
+                break;
             default:
                 ;
             }
@@ -222,7 +242,7 @@ public:
                 return;
             }
 
-            int spells[5] = { 86001 ,85980,85990,85970 };
+            int spells[5] = { 86001 ,85980,85990,85970 , 85895};
 
             for (int i = 0; i < 5; i++) {
                 Aura* arua = caster->GetAura(spells[i]);

@@ -1405,6 +1405,12 @@ void Guardian::UpdateMaxPower(Powers power)
         case 45013: // Blade Master
             value = 570 + (int)GetLevel() * 2;
             break;
+        case 45014: // Pitlord
+            value = 435 + (int)GetLevel() * 2;
+            break;
+        case 45016: // Blood Mage
+            value = 735 + (int)GetLevel() * 3;
+            break;
         default:
             if (GetOwner()) {
                 value = this->GetOwner()->GetMaxPower(power)*m_creatureInfo->ModMana;

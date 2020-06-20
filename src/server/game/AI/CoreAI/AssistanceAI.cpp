@@ -34,11 +34,13 @@
 #include "CellImpl.h"
 #include "AssistanceAI.h"
 #include "TemporarySummon.h"
+#include "Pet.h"
 
 /////////////////
 // AggressorAI
 /////////////////
 
+#pragma execution_character_set("utf-8")
 
 const char* getCustomGreeting(int entry) {
     switch (entry) {
@@ -46,6 +48,8 @@ const char* getCustomGreeting(int entry) {
         return "希望这次你准备了烈酒";
     case 45003:
         return "我到了，让我们速战速决吧";
+    case 45005:
+        return "为了巫妖王！";
     case 46000:
         return "为您效劳";
     }
@@ -68,6 +72,16 @@ Unit* SelectLeastHpPctFriendly(Unit* who, float range, bool isCombat) {
     Cell::VisitAllObjects(who, searcher, range);
 
     return unit;
+}
+
+void UnitAddCriticalRate(Unit* who, int rate) {
+    if (!who)
+        return;
+
+    CastSpellExtraArgs args;
+    args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT0, rate - 1);
+    args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT1, rate - 1);
+    who->CastSpell(who, 88000, args);
 }
 
 //////////////////
@@ -206,6 +220,12 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
 
         // Take care of specail AI
         switch (me->m_spells[i]) {
+        case 85871: // Drain mana
+            if (me->GetPower(POWER_MANA) < me->GetMaxPower(POWER_MANA) / 2 &&
+                victim && victim->GetMaxPower(POWER_MANA) > me->GetMaxPower(POWER_MANA)/4) {
+                break;
+            }
+            continue;
         case 85912:
             if (me->GetHealthPct() > 60) {
                 continue;
@@ -407,6 +427,11 @@ void AssistanceAI::Reborn(uint32 pct) {
     me->SetPower(POWER_MANA, uint32(me->GetMaxPower(POWER_MANA)));
     me->CastSpell(me, 85948);
     //me->m_Events.
+
+    if (me->GetEntry() >= 45000 && me->GetEntry() <= 46000) {
+        me->CastSpell(me, 86008);
+    }
+
     AssistantsSpell(0, 0);
 }
 
@@ -562,6 +587,7 @@ void AssistanceAI::JustAppeared() {
     const char* greeting = getCustomGreeting(me->GetEntry());
     Player* owner = me->GetOwner()? me->GetOwner()->ToPlayer():nullptr;
 
+
     if (greeting)
         me->Yell(greeting, Language::LANG_UNIVERSAL, me->GetOwner());
 
@@ -573,10 +599,13 @@ void AssistanceAI::JustAppeared() {
     //  War III heroes
     if (me->GetEntry() >= 45000 && me->GetEntry() <= 45100) {
         me->CastSpell(me, 86008);
+    } else if (owner) {
+        UnitAddCriticalRate(me, owner->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1+1) / 2 + owner->GetFloatValue(PLAYER_CRIT_PERCENTAGE) / 2);
     }
 
     _class = ASSISTANCE_CLASS::NONE;
     _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_MELEE;
+
 
     // Set class and attack type
     switch (me->GetEntry()) {
@@ -617,6 +646,7 @@ void AssistanceAI::JustAppeared() {
     case 45004:
     case 45005:
     case 45009:
+    case 45016:
     case 46000:
     case 46001:
     case 46006:
@@ -624,12 +654,51 @@ void AssistanceAI::JustAppeared() {
     case 46011:
     case 46012:
     case 46015:
+    case 46028:
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
-
     case 46018:
         _awakeTime = 1500;
         effSpell = 85907;
+        break;
+    case 46023:
+        me->SetVisible(false);
+        _awakeTime = 1800;
+        break;
+    case 46003:
+    case 46004:
+    case 46005:
+        if (owner && !owner->HasAura(87285)) {
+            Pet* pet = owner->GetPet();
+            uint32 entry = me->GetEntry();
+            if (pet &&
+                (
+                    (entry==46005 && pet->GetEntry()== 17252) ||
+                    (entry==46004 && pet->GetEntry()==1863) ||
+                    (entry==46003 && pet->GetEntry()==417)
+                )) {
+                effSpell = 87285;
+                me->ToTempSummon()->m_timer = (uint32)-1;
+                me->ToTempSummon()->m_lifetime = (uint32)-1;
+                _followDistance = 1;
+                _followAngle = float(M_PI * 3 / 2);
+            }
+        }
+        break;
+    case 46026:
+        effSpell = 87285;
+        me->ToTempSummon()->m_timer = (uint32)-1;
+        me->ToTempSummon()->m_lifetime = (uint32)-1;
+        _followDistance = 1;
+        _followAngle = float(M_PI * 3 / 2);
+        break;
+    case 46025:
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        me->ToTempSummon()->m_timer = (uint32)-1;
+        me->ToTempSummon()->m_lifetime = (uint32)-1;
+        _followDistance = 1;
+        _followAngle = float(M_PI *3 / 2);
+        effSpell = 87285;
         break;
     case 46020:
     case 46021:
@@ -638,7 +707,9 @@ void AssistanceAI::JustAppeared() {
         effSpell = 85907;
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
+        
     case 46007:
+    case 46029:
         isMovable = false;
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
@@ -646,7 +717,7 @@ void AssistanceAI::JustAppeared() {
         _awakeTime = 4000;
         break;
     case 46024:
-        effSpell = 11010;
+        effSpell = 89001;
         me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
@@ -680,6 +751,9 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
     if (_awakeTime > 0) {
         me->StopMoving();
         _awakeTime -= diff;
+        if (_awakeTime <= 0) {
+            me->SetVisible(true);
+        }
         return;
     }
 

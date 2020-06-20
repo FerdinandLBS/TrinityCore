@@ -19,6 +19,7 @@
 #include "Random.h"
 #include "MotionMaster.h"
 #include "WorldSession.h"
+#include "Pet.h"
 
 class spell_sunwell_power : public SpellScriptLoader
 {
@@ -40,12 +41,12 @@ public:
 
             Aura* aura = player->GetAura(87203);
             CastSpellExtraArgs args;
-            if (aura)
+            if (aura) {
                 count += aura->GetStackAmount() * 2;
+                aura->Remove();
+            }
 
-            Aura* thisAura = player->GetAura(87204);
-            if (thisAura)
-                thisAura->SetStackAmount(count);
+            GetSpell()->SetSpellValue(SpellValueMod::SPELLVALUE_BASE_POINT0, count);
         }
 
         void Register() override
@@ -101,6 +102,66 @@ public:
     AuraScript* GetAuraScript() const override
     {
         return new spell_smart_chicken_aura_AuraScript();
+    }
+};
+
+class spell_human_mage : public SpellScriptLoader
+{
+public:
+    spell_human_mage() : SpellScriptLoader("spell_human_mage") { }
+
+
+    class spell_human_mage_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_human_mage_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return true;
+        }
+
+        void HandleProc(AuraEffect const* aurEff, ProcEventInfo& eventInfo)
+        {
+            PreventDefaultAction();
+            Player* caster = eventInfo.GetActor()->ToPlayer();
+
+            if (caster == nullptr)
+                return;
+
+            if (eventInfo.GetDamageInfo()->GetDamage() <= 1) {
+                return;
+            }
+
+            int spell;
+            const Spell* sp = eventInfo.GetProcSpell();
+            switch (eventInfo.GetDamageInfo()->GetSchoolMask()) {
+            case SpellSchoolMask::SPELL_SCHOOL_MASK_FIRE:
+                spell = 87215; // arcane
+                caster->RemoveAura(87213);
+                break;
+            case SpellSchoolMask::SPELL_SCHOOL_MASK_FROST:
+                spell = 87213; // fire
+                caster->RemoveAura(87214);
+                break;
+            case SpellSchoolMask::SPELL_SCHOOL_MASK_ARCANE:
+                spell = 87214; // frost
+                caster->RemoveAura(87215);
+                break;
+            default:
+                return;
+            }
+            caster->CastSpell(caster, spell, true);
+        }
+
+        void Register() override
+        {
+            OnEffectProc += AuraEffectProcFn(spell_human_mage_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_PROC_TRIGGER_SPELL);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_human_mage_AuraScript();
     }
 };
 
@@ -172,13 +233,16 @@ public:
     }
 };
 
-void SummonRandomDemon(Unit* caster) {
+void SummonRandomDemon(Unit* caster, Unit* originCaster) {
     int index = rand() % 7;
     int spells[] = {87251, 87254, 87255, 87256, 87264, 87271, 87272};
 
-    if (index == 0) {
+    if (index == 0 || originCaster) {
         CastSpellExtraArgs args;
-        args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT0, 3);
+        if (!index)
+            args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT0, 3);
+        if (originCaster)
+            args.SetOriginalCaster(originCaster->GetGUID());
         caster->CastSpell(caster, spells[index], args);
     }
     else {
@@ -191,30 +255,81 @@ class spell_gnome_warlock : public SpellScriptLoader
 public:
     spell_gnome_warlock() : SpellScriptLoader("spell_gnome_warlock") { }
 
-    class spell_gnome_warlock_SpellScript : public SpellScript
+
+    class spell_gnome_warlock_AuraScript : public AuraScript
     {
-        PrepareSpellScript(spell_gnome_warlock_SpellScript);
+        PrepareAuraScript(spell_gnome_warlock_AuraScript);
 
-        void HandleAfterCast()
+        bool Validate(SpellInfo const* /*spellInfo*/) override
         {
-            Player* owner = GetCaster()->ToPlayer();
-            if (!owner)
-                return;
+            return true;
+        }
 
-            SummonRandomDemon(owner);
+        void HandleProc(AuraEffect* aurEff)
+        {
+            int spell;
+            Unit* caster = GetCaster();
+            uint32 entry = 0;
+            Aura* doubleDeamonAura = caster->GetAura(87285);
+            Player* p = caster->ToPlayer();
+            if (!p)
+                return;
+            Pet* pet = p->GetPet();
+            if (pet)
+                entry = pet->GetEntry();
+
+            if (doubleDeamonAura) {
+                uint32 ddEntry = doubleDeamonAura->GetCaster()->GetEntry();
+
+                // TODO: add more pets here
+                if ((entry == 1860 && ddEntry == 46026) ||
+                    (entry == 416 && ddEntry == 46025) ||
+                    (entry == 17252 && ddEntry == 46005) ||
+                    (entry == 1863 && ddEntry == 46004) ||
+                    (entry == 417 && ddEntry == 46003))
+                    return;
+
+                doubleDeamonAura->GetCaster()->ToCreature()->DespawnOrUnsummon();
+                if (!pet) {
+                    return;
+                }
+            }
+            switch (entry) {
+            case 1860:
+                spell = 87286;
+                break;
+            case 416:
+                spell = 87284;
+                break;
+            case 17252:
+                spell = 87256;
+                break;
+            case 1863:
+                spell = 87255;
+                break;
+            case 417:
+                spell = 87254;
+                break;
+            default:
+                return;
+            }
+
+            CastSpellExtraArgs args(aurEff);
+            args.AddSpellMod(SpellValueMod::SPELLVALUE_CRIT_CHANCE, 100);
+            caster->CastSpell(caster, spell, args);
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_gnome_warlock_SpellScript::HandleAfterCast);
+            OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_gnome_warlock_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_PERIODIC_TRIGGER_SPELL);
         }
     };
 
-    SpellScript* GetSpellScript() const override
+    AuraScript* GetAuraScript() const override
     {
-        return new spell_gnome_warlock_SpellScript();
+        return new spell_gnome_warlock_AuraScript();
     }
-}; 
+};
 
 class spell_bloodelf_warlock : public SpellScriptLoader
 {
@@ -225,57 +340,17 @@ public:
     {
         PrepareSpellScript(spell_bloodelf_warlock_SpellScript);
 
-        int GetCostCount(Unit* caster, uint32* auraStack) {
-        }
-
-        SpellCastResult CheckCastHandler() {
-            Unit* caster = GetCaster();
-            Player* player = caster->ToPlayer();
-            uint32 auraStack = 0;
-            Aura* aura;
-
-            if (!player)
-                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
-
-            aura = caster->GetAura(87270);
-            uint32 cost;
-
-            if (aura == nullptr) {
-                cost = 0;
-            }
-            else {
-                auraStack = aura->GetStackAmount();
-                cost = std::pow(2, auraStack - 1);
-            }
-
-            uint32 count = player->GetItemCount(6265);
-            if (cost > count) {
-                return SPELL_FAILED_NEED_MORE_ITEMS;
-            }
-
-            if (auraStack == 0) {
-                caster->CastSpell(caster, 87270);
-            }
-            else {
-                aura->SetStackAmount(auraStack + 1);
-            }
-
-            player->DestroyItemCount(player->GetItemByEntry(6265), cost, true);
-            return SPELL_CAST_OK;
-        }
-
         void HandleAfterCast()
         {
-            Player* owner = GetCaster()->ToPlayer();
+            Unit* owner = GetCaster();
             if (!owner)
                 return;
 
-            SummonRandomDemon(owner);
+            SummonRandomDemon(owner, owner->GetOwner());
         }
 
         void Register() override
         {
-            OnCheckCast += SpellCheckCastFn(spell_bloodelf_warlock_SpellScript::CheckCastHandler);
             AfterCast += SpellCastFn(spell_bloodelf_warlock_SpellScript::HandleAfterCast);
         }
     };
@@ -286,6 +361,80 @@ public:
     }
 };
 
+class spell_undead_warlock : public SpellScriptLoader
+{
+public:
+    spell_undead_warlock() : SpellScriptLoader("spell_undead_warlock") { }
+
+    class spell_undead_warlock_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_undead_warlock_SpellScript);
+
+        void HandleAfterCast() {
+            Unit* owner = GetCaster();
+            //owner->m_Events.AddEvent();
+            owner->CastSpell(GetSpell()->m_targets, 87280, true);
+        }
+
+        void HandleAfterHit()
+        {
+            Unit* owner = GetCaster();
+            if (!owner)
+                return;
+            Creature* victim = GetHitCreature();
+            if (!victim)
+                return;
+
+            CastSpellExtraArgs args;
+            args.SetOriginalCaster(owner->GetGUID());
+            victim->CastSpell(owner, 87251, args);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_undead_warlock_SpellScript::HandleAfterCast);
+            AfterHit += SpellHitFn(spell_undead_warlock_SpellScript::HandleAfterHit);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_undead_warlock_SpellScript();
+    }
+};
+
+class spell_undead_warlock2 : public SpellScriptLoader
+{
+public:
+    spell_undead_warlock2() : SpellScriptLoader("spell_undead_warlock2") { }
+
+    class spell_undead_warlock2_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_undead_warlock2_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Unit* owner = GetCaster();
+            if (!owner)
+                return;
+            Player* target = owner->ToPlayer();
+
+            target->GetSpellHistory()->ModifyCooldown(87279, -1000);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_undead_warlock2_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_undead_warlock2_SpellScript();
+    }
+};
+
+
 void AddSC_race_telants_script()
 {
     new spell_gnome_warlock();
@@ -294,4 +443,7 @@ void AddSC_race_telants_script()
     new spell_wild_imp_enhance_master();
     new spell_smart_chicken_aura();
     new spell_bloodelf_warlock();
+    new spell_human_mage();
+    new spell_undead_warlock();
+    new spell_undead_warlock2();
 }

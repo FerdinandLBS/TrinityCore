@@ -2169,7 +2169,7 @@ Player* WorldObject::GetSpellModOwner() const
     if (GetTypeId() == TYPEID_UNIT)
     {
         Creature const* creature = ToCreature();
-        if (creature->IsPet() || creature->IsTotem())
+        if (creature->IsPet() || creature->IsTotem() || creature->GetEntry() >= 46000)
         {
             if (Unit* owner = creature->GetOwner())
                 return owner->ToPlayer();
