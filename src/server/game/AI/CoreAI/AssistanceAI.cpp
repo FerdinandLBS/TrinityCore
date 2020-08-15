@@ -52,6 +52,8 @@ const char* getCustomGreeting(int entry) {
         return "为了巫妖王！";
     case 46000:
         return "为您效劳";
+    case 46030:
+        return "我到了，请多多指教";
     }
     return nullptr;
 }
@@ -380,13 +382,13 @@ float AssistanceAI::getSpecialFollowAngle() {
         case 85990: // sword
             return 0.0f;
         case 86001: // tank
-            return static_cast<float>(1.6f*M_PI);
+            return static_cast<float>(-M_PI/4);
         case 85980: // healer
-            return static_cast<float>(0.8f*M_PI);
+            return static_cast<float>(M_PI/4);
         case 85970: // mage
-            return static_cast<float>(0.4f*M_PI);
+            return static_cast<float>(3*M_PI/4);
         case 85895: // assistance
-            return static_cast<float>(1.2f*M_PI);
+            return static_cast<float>(3*M_PI/2);
         }
     }
     return static_cast<float>(rand_chance()*M_PI);
@@ -481,7 +483,7 @@ void AssistanceAI::updateTimer(uint32 diff)
                 break;
             }
         }
-        if (gcd < 1000) {
+        if (gcd < ASSIST_GCD) {
             gcd += diff;
         }
         if (_lifeTimer > 0) {
@@ -550,7 +552,7 @@ void AssistanceAI::UseInstanceHealing() {
 }
 
 // Unit is idle. Only heal spells can cast
-void AssistanceAI::ResetPosition()
+void AssistanceAI::ResetPosition(bool force)
 {
     UseInstanceHealing();
 
@@ -562,23 +564,27 @@ void AssistanceAI::ResetPosition()
         return;
     }
 
-    if (!(me->GetVictim() && me->EnsureVictim()->IsAlive())) {
+    if (force || !(me->GetVictim() && me->EnsureVictim()->IsAlive())) {
         //MovementGenerator* mg = me->GetMotionMaster()->;
         if (!(me->IsCharmed() || me->IsSummon() || me->IsGuardian())) {
             return;
         }
 
-        me->AttackStop();
-        me->SetTarget(ObjectGuid::Empty);
-        if (me->HasUnitState(UNIT_STATE_FOLLOW) && isInCombat == false) {
-            return;
+        if (!force) {
+            me->AttackStop();
+            me->SetTarget(ObjectGuid::Empty);
+            if (me->HasUnitState(UNIT_STATE_FOLLOW) && isInCombat == false) {
+                return;
+            }
         }
 
         me->StopMoving();
         me->GetMotionMaster()->Clear();
-        me->GetMotionMaster()->MoveFollow(me->GetCharmerOrOwner(), _followDistance, _followAngle);
-        isInCombat = false;
-        me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
+        me->GetMotionMaster()->MoveFollowEx(me->GetCharmerOrOwner(), _followDistance, _followAngle);
+        if (!force) {
+            isInCombat = false;
+            me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
+        }
     }
 }
 
@@ -589,7 +595,7 @@ void AssistanceAI::JustAppeared() {
 
 
     if (greeting)
-        me->Yell(greeting, Language::LANG_UNIVERSAL, me->GetOwner());
+        me->Say(greeting, Language::LANG_UNIVERSAL, me->GetOwner());
 
     _followAngle = getSpecialFollowAngle();
     _followDistance = 1.2f;
@@ -661,7 +667,7 @@ void AssistanceAI::JustAppeared() {
         _awakeTime = 1500;
         effSpell = 85907;
         break;
-    case 46023:
+    case 46023: // Hellfire
         me->SetVisible(false);
         _awakeTime = 1800;
         break;
@@ -707,9 +713,14 @@ void AssistanceAI::JustAppeared() {
         effSpell = 85907;
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
-        
+    case 46030:
+        effSpell = 85907;
+        _followDistance = 0.5f;
+        _followAngle = float(M_PI * 5 / 4);
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
     case 46007:
-    case 46029:
+    case 46029: // Demon Portal
         isMovable = false;
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
@@ -720,6 +731,14 @@ void AssistanceAI::JustAppeared() {
         effSpell = 89001;
         me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        break;
+    case 46031:
+        effSpell = 89001;
+        me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
+        _followDistance = 0.1f;
+        me->SetFloatValue(UNIT_FIELD_HOVERHEIGHT, 4);
+        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
+        canAttack = false;
         break;
     default:
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_MELEE;
@@ -756,6 +775,9 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
         }
         return;
     }
+
+    if (!canAttack)
+        return ResetPosition();
 
     // update spells cool down
     updateTimer(diff);

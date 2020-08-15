@@ -21,6 +21,48 @@
 #include "WorldSession.h"
 #include "Pet.h"
 
+#include "SpellUtility.h"
+
+class spell_summon_green_gem : public SpellScriptLoader
+{
+public:
+    spell_summon_green_gem() : SpellScriptLoader("spell_summon_green_gem") { }
+
+    class spell_summon_green_gem_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_summon_green_gem_SpellScript);
+
+        SpellCastResult CheckCast() {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
+
+            Player* player = caster->ToPlayer();
+
+            if (!player)
+                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
+
+            std::list<Creature*> minions;
+            player->GetAllMinionsByEntry(minions, 46031);
+            if (minions.size() >= 3) {
+                return SpellCastResult::SPELL_FAILED_TOO_MANY_SOCKETS;
+            }
+
+            return SpellCastResult::SPELL_CAST_OK;
+        }
+
+        void Register() override
+        {
+            OnCheckCast += SpellCheckCastFn(spell_summon_green_gem_SpellScript::CheckCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_summon_green_gem_SpellScript();
+    }
+};
+
 class spell_sunwell_power : public SpellScriptLoader
 {
 public:
@@ -30,28 +72,28 @@ public:
     {
         PrepareSpellScript(spell_sunwell_power_SpellScript);
 
-        void HandleAfterCast()
-        {
-            Player* player = this->GetCaster()->ToPlayer();
-            uint32 count = 1;
+        SpellCastResult CheckCast() {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
 
-            if (player == nullptr) {
-                return;
+            Player* player = caster->ToPlayer();
+
+            if (!player)
+                return SpellCastResult::SPELL_FAILED_BAD_TARGETS;
+
+            std::list<Creature*> minions;
+            player->GetAllMinionsByEntry(minions, 46031);
+            if (minions.size() <= 0) {
+                return SpellCastResult::SPELL_FAILED_NOT_READY;
             }
 
-            Aura* aura = player->GetAura(87203);
-            CastSpellExtraArgs args;
-            if (aura) {
-                count += aura->GetStackAmount() * 2;
-                aura->Remove();
-            }
-
-            GetSpell()->SetSpellValue(SpellValueMod::SPELLVALUE_BASE_POINT0, count);
+            return SpellCastResult::SPELL_CAST_OK;
         }
 
         void Register() override
         {
-            BeforeCast += SpellCastFn(spell_sunwell_power_SpellScript::HandleAfterCast);
+            OnCheckCast += SpellCheckCastFn(spell_sunwell_power_SpellScript::CheckCast);
         }
     };
 
@@ -166,44 +208,158 @@ public:
 };
 
 
-class spell_draenei_mage : public SpellScriptLoader
+class spell_draenei_mage_learn : public SpellScriptLoader
 {
 public:
-    spell_draenei_mage() : SpellScriptLoader("spell_draenei_mage") { }
+    spell_draenei_mage_learn() : SpellScriptLoader("spell_draenei_mage_learn") { }
 
-    class spell_draenei_mage_SpellScript : public SpellScript
+    class spell_draenei_mage_learn_SpellScript : public SpellScript
     {
-        PrepareSpellScript(spell_draenei_mage_SpellScript);
+        PrepareSpellScript(spell_draenei_mage_learn_SpellScript);
 
         void HandleAfterCast()
         {
-            Player* owner = this->GetCaster()->ToPlayer();
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Player* owner = nullptr;
+            if (caster->GetOwner()) {
+                owner = caster->GetOwner()->ToPlayer();
+            }
             if (!owner)
                 return;
 
-            Aura* aura = owner->GetAura(87217);
-            if (!aura)
-                return;
-
-            CastSpellExtraArgs args;
-            uint32 auraCount = aura->GetStackAmount();
-
-            float intl = owner->GetStat(STAT_INTELLECT);
-            args.AddSpellMod(SpellValueMod::SPELLVALUE_BASE_POINT0, intl*auraCount/14);
-            owner->CastSpell(GetSpell()->m_targets, 87219, args);
+            AssistanceAI* ai = (AssistanceAI*)caster->GetAI();
+            Spell* spell = owner->GetCurrentSpell(CurrentSpellTypes::CURRENT_GENERIC_SPELL);
+            if (spell && spell->GetSpellInfo()->SpellFamilyName == 3) {
+                if (SpellCastResult::SPELL_CAST_OK != caster->CastSpell(spell->m_targets, spell->GetSpellInfo()->Id)) {
+                    ai->ResetPosition(true);
+                }
+            }
         }
 
         void Register() override
         {
-            AfterCast += SpellCastFn(spell_draenei_mage_SpellScript::HandleAfterCast);
+            AfterCast += SpellCastFn(spell_draenei_mage_learn_SpellScript::HandleAfterCast);
         }
     };
 
     SpellScript* GetSpellScript() const override
     {
-        return new spell_draenei_mage_SpellScript();
+        return new spell_draenei_mage_learn_SpellScript();
     }
 };
+
+class spell_draenei_mage_manatrans : public SpellScriptLoader
+{
+public:
+    spell_draenei_mage_manatrans() : SpellScriptLoader("spell_draenei_mage_manatrans") { }
+
+
+    class spell_draenei_mage_manatrans_AuraScript : public AuraScript
+    {
+        PrepareAuraScript(spell_draenei_mage_manatrans_AuraScript);
+
+        bool Validate(SpellInfo const* /*spellInfo*/) override
+        {
+            return true;
+        }
+
+        void HandleProc(AuraEffect* aurEff)
+        {
+            Unit* caster = GetCaster();
+            if (!caster)
+                return;
+
+            Unit* owner = caster->GetOwner();
+            if (!owner)
+                return;
+
+            int32 myPct, ownerPct;
+
+            myPct = caster->GetPower(POWER_MANA) * 1000 / caster->GetMaxPower(POWER_MANA);
+            ownerPct = owner->GetPower(POWER_MANA) * 1000 / owner->GetMaxPower(POWER_MANA);
+            if (myPct > ownerPct && myPct >= 80) {
+                int32 value = caster->GetMaxPower(POWER_MANA) / 13 ;
+                owner->ModifyPower(POWER_MANA, value);
+                caster->ModifyPower(POWER_MANA, -value);
+            }
+        }
+
+        void Register() override
+        {
+            OnEffectUpdatePeriodic += AuraEffectUpdatePeriodicFn(spell_draenei_mage_manatrans_AuraScript::HandleProc, EFFECT_0, SPELL_AURA_PERIODIC_ENERGIZE);
+        }
+    };
+
+    AuraScript* GetAuraScript() const override
+    {
+        return new spell_draenei_mage_manatrans_AuraScript();
+    }
+};
+
+class spell_draenei_mage_encourage : public SpellScriptLoader
+{
+public:
+    spell_draenei_mage_encourage() : SpellScriptLoader("spell_draenei_mage_encourage") { }
+
+    class spell_draenei_mage_encourage_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_draenei_mage_encourage_SpellScript);
+
+        void HandleAfterCast()
+        {
+            Unit* caster = GetCaster();
+
+            if (!caster)
+                return;
+
+            Player* owner = caster->GetOwner()->ToPlayer();
+            if (!owner)
+                return;
+
+            uint32 spell = 0;
+            CastSpellExtraArgs args;
+            //args.SetOriginalCaster(owner->GetGUID());
+            args.SetTriggerFlags(TriggerCastFlags::TRIGGERED_FULL_MASK);
+            switch (rand() % 6) {
+            case 0:
+                spell = 44401;
+                break;
+            case 1:
+                spell = 44544;
+                break;
+            case 2:
+                spell = 57761;
+                break;
+            case 3:
+                spell = 12536;
+                break;
+            case 4:
+                spell = 64343;
+                break;
+            case 5:
+                spell = 54741;
+                break;
+            default:
+                return;
+            }
+            owner->CastSpell(owner, spell, args);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_draenei_mage_encourage_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_draenei_mage_encourage_SpellScript();
+    }
+};
+
 
 class spell_wild_imp_enhance_master : public SpellScriptLoader
 {
@@ -372,8 +528,9 @@ public:
 
         void HandleAfterCast() {
             Unit* owner = GetCaster();
-            //owner->m_Events.AddEvent();
-            owner->CastSpell(GetSpell()->m_targets, 87280, true);
+            CastSpellExtraArgs args;
+            owner->m_Events.AddEvent(new SpellDelayCastEvent(87280, owner, GetSpell()->m_targets, args), owner->m_Events.CalculateTime(1100));
+            //owner->CastSpell(GetSpell()->m_targets, 87280, true);
         }
 
         void HandleAfterHit()
@@ -439,7 +596,9 @@ void AddSC_race_telants_script()
 {
     new spell_gnome_warlock();
     new spell_sunwell_power();
-    new spell_draenei_mage();
+    new spell_draenei_mage_learn();
+    new spell_draenei_mage_encourage();
+    new spell_draenei_mage_manatrans();
     new spell_wild_imp_enhance_master();
     new spell_smart_chicken_aura();
     new spell_bloodelf_warlock();

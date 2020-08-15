@@ -53,6 +53,10 @@ class FollowExMovementGenerator : public MovementGenerator, public AbstractFollo
         float const _range;
         ChaseAngle const _angle;
 
+        float _walkSpeed;
+        float _swimSpeed;
+        float _runSpeed;
+
         uint32 _checkTimer = CHECK_INTERVAL;
         std::unique_ptr<PathGenerator> _path;
         Optional<Position> _lastTargetPosition;

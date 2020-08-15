@@ -48,6 +48,7 @@
 #include "RandomMovementGenerator.h"
 #include "SplineChainMovementGenerator.h"
 #include "WaypointMovementGenerator.h"
+#include "FollowExMovementGenerator.h"
 
 inline MovementGenerator* GetIdleMovementGenerator()
 {
@@ -579,6 +580,16 @@ void MotionMaster::MoveRandom(float wanderDistance)
         TC_LOG_DEBUG("movement.motionmaster", "MotionMaster::MoveRandom: '%s', started random movement (spawnDist: %f)", _owner->GetGUID().ToString().c_str(), wanderDistance);
         Add(new RandomMovementGenerator<Creature>(wanderDistance), MOTION_SLOT_DEFAULT);
     }
+}
+
+void MotionMaster::MoveFollowEx(Unit* target, float dist, ChaseAngle angle, MovementSlot slot/* = MOTION_SLOT_ACTIVE*/)
+{
+    // Ignore movement request if target not exist
+    if (!target || target == _owner)
+        return;
+
+    TC_LOG_DEBUG("movement.motionmaster", "MotionMaster::MoveFollow: '%s', starts following '%s'", _owner->GetGUID().ToString().c_str(), target->GetGUID().ToString().c_str());
+    Add(new FollowExMovementGenerator(target, dist, angle, 0), slot);
 }
 
 void MotionMaster::MoveFollow(Unit* target, float dist, ChaseAngle angle, MovementSlot slot/* = MOTION_SLOT_ACTIVE*/)

@@ -34,6 +34,12 @@ INSERT INTO `world`.`playercreateinfo_action` (`race`, `class`, `button`, `actio
 INSERT INTO `world`.`playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES ('10', '8', '3', '87204', '0');
 INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('87204', 'spell_sunwell_power');
 
+ -- 翠绿魔珠
+INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES 
+('46031', '0', '0', '0', '0', '0', '29485', '0', '0', '0', '魔珠', '', '', '0', '1', '80', '0', '14', '0', '1', '1.14286', '0.1', '0', '0', '2000', '2000', '1', '1', '1', '33555200', '2048', '0', '0', '3', '72', '0', '0', '0', '0', '0', '0', '0', 'AssistanceAI', '0', '1', '1', '0', '1', '1', '1', '0', '0', '1', '0', '0', '64', 'AssistanceAI', '12340');
+INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('87203', 'spell_summon_green_gem');
+
+
 -- 亡灵法师
 INSERT INTO `world`.`playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES ('5', '8', '3', '87205', '0');
 INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES ('46000', '0', '0', '0', '0', '0', '11397', '0', '0', '0', '亡骨巫师', '', '', '0', '1', '80', '0', '21', '0', '1', '1.14286', '1', '0', '0', '2000', '2000', '1', '1', '2', '0', '2048', '0', '0', '6', '0', '0', '0', '0', '0', '0', '0', '0', 'AssistanceAI', '1', '1', '1', '1', '1', '1', '1', '0', '0', '1', '8388624', '0', '0', '', '12340');
@@ -54,9 +60,18 @@ INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('872
 INSERT INTO `world`.`playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES ('1', '8', '2', '87212', '0');
 
 -- 德莱尼法师
-INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('87216', 'spell_draenei_mage');
+INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('87217', 'spell_draenei_mage_encourage');
+INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('87218', 'spell_draenei_mage_manatrans');
+INSERT INTO `world`.`spell_script_names` (`spell_id`, `ScriptName`) VALUES ('87219', 'spell_draenei_mage_learn');
 INSERT INTO `world`.`playercreateinfo_action` (`race`, `class`, `button`, `action`, `type`) VALUES ('11', '8', '3', '87216', '0');
-INSERT INTO `world`.`playercreateinfo_cast_spell` (`raceMask`, `classMask`, `spell`, `note`) VALUES ('1024', '128', '87218', 'draenei mage');
+
+-- 魔法学徒
+INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES 
+('46030', '0', '0', '0', '0', '0', '16201', '16223', '0', '0', '魔法学徒', '', '', '0', '1', '80', '0', '1638', '0', '1', '1.14286', '1', '0', '0', '2000', '2000', '1', '1', '8', '0', '2048', '0', '0', '7', '0', '0', '0', '0', '0', '0', '0', '0', 'AssistanceAI', '0', '1', '0.3', '0.3', '1', '1', '1', '0', '0', '1', '0', '0', '66', 'AssistanceAI', '12340');
+
+INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46030', '0', '87218', '12340');
+INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46030', '1', '87217', '12340');
+INSERT INTO `world`.`creature_template_spell` (`CreatureID`, `Index`, `Spell`, `VerifiedBuild`) VALUES ('46030', '2', '87219', '12340');
 
 -- 兽人术士
 INSERT INTO `world`.`creature_template` (`entry`, `difficulty_entry_1`, `difficulty_entry_2`, `difficulty_entry_3`, `KillCredit1`, `KillCredit2`, `modelid1`, `modelid2`, `modelid3`, `modelid4`, `name`, `subname`, `IconName`, `gossip_menu_id`, `minlevel`, `maxlevel`, `exp`, `faction`, `npcflag`, `speed_walk`, `speed_run`, `scale`, `rank`, `dmgschool`, `BaseAttackTime`, `RangeAttackTime`, `BaseVariance`, `RangeVariance`, `unit_class`, `unit_flags`, `unit_flags2`, `dynamicflags`, `family`, `type`, `type_flags`, `lootid`, `pickpocketloot`, `skinloot`, `PetSpellDataId`, `VehicleId`, `mingold`, `maxgold`, `AIName`, `MovementType`, `HoverHeight`, `HealthModifier`, `ManaModifier`, `ArmorModifier`, `DamageModifier`, `ExperienceModifier`, `RacialLeader`, `movementId`, `RegenHealth`, `mechanic_immune_mask`, `spell_school_immune_mask`, `flags_extra`, `ScriptName`, `VerifiedBuild`) VALUES 

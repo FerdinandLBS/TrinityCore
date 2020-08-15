@@ -7,7 +7,7 @@ class Creature;
 
 #define MAX_CREATURE_SPELL 8
 #define MAX_TIMER_TYPE 2
-#define ASSIST_GCD 1000
+#define ASSIST_GCD 1050
 
 class TC_GAME_API AssistanceAI : public CreatureAI
 {
@@ -44,6 +44,7 @@ public:
         isInCombat = false;
         isMovable = true;
         isTargetChanged = false;
+        canAttack = true;
         _awakeTime = 0;
         _lifeTimer = -1;
     }
@@ -53,6 +54,8 @@ public:
     void JustDied(Unit* /*killer*/);
     void JustAppeared() override;
     void Reborn(uint32 pct);
+    void ResetPosition(bool force=false);
+
 private:
     ASSISTANCE_CLASS _class;
     ASSISTANCE_ATTACK_TYPE _type;
@@ -60,6 +63,7 @@ private:
     uint32 gcd;
     bool isInCombat;
     bool isMovable;
+    bool canAttack;
     bool isTargetChanged;
     bool auraApplied[MAX_CREATURE_SPELL];
     int32 spellsTimer[MAX_CREATURE_SPELL][MAX_TIMER_TYPE];
@@ -76,7 +80,6 @@ private:
     bool isSpellReady(uint32 index);
     void updateTimer(uint32 diff);
     void resetLifeTimer();
-    void ResetPosition();
     void ReadyToDie();
     bool isCaster();
     void EngagementStart(Unit * who);
