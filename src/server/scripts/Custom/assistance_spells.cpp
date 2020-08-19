@@ -1,4 +1,4 @@
-﻿
+
 #include "ScriptMgr.h"
 #include "Containers.h"
 #include "DBCStores.h"
@@ -34,15 +34,15 @@ public:
         const char* GetRandomBye() {
             switch (irand(0, 3)) {
             case 0:
-                return "再见";
+                return "??";
             case 1:
-                return "你自己保重";
+                return "?????";
             case 2:
-                return "我要去休息一下了";
+                return "????????";
             case 3:
                 return "....";
             default:
-                return "后会有期";
+                return "????";
             }
         }
 
@@ -57,10 +57,10 @@ public:
                 p->CastSpell(p, 62940);
                 p->SetFacingToObject(owner);
                 p->Say(GetRandomBye(), Language::LANG_UNIVERSAL, owner);
-                p->DespawnOrUnsummon(1050);
+                p->DespawnOrUnsummon(Milliseconds(1050));
             }
             else {
-                p->DespawnOrUnsummon(0);
+                p->DespawnOrUnsummon(Milliseconds(0));
             }
             AssistanceAI* ai = (AssistanceAI*)p->GetAI();
             ai->AIFlag = AssistanceAI::AI_ACTION_FLAG::AI_ACTION_PASSIVE;
@@ -76,12 +76,12 @@ public:
             }
 
             if (target == nullptr || target->GetEntry() >= 46000 || target->GetEntry() < 45000) {
-                player->GetSession()->SendAreaTriggerMessage("必须选择一个魔兽英雄");
+                player->GetSession()->SendAreaTriggerMessage("??????????");
                 return;
             }
 
             if (target->GetOwner() != player) {
-                player->GetSession()->SendAreaTriggerMessage("必须选择自己的魔兽英雄");
+                player->GetSession()->SendAreaTriggerMessage("???????????");
                 return;
             }
 

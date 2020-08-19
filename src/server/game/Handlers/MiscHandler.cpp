@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -57,6 +57,8 @@
 #include "ScriptedGossip.h"
 #include "Item.h"
 
+#pragma execution_character_set("utf-8")
+
 void WorldSession::HandleRepopRequest(WorldPackets::Misc::RepopRequest& /*packet*/)
 {
     TC_LOG_DEBUG("network", "WORLD: Recvd CMSG_REPOP_REQUEST Message");
@@ -91,7 +93,7 @@ void BuildSpecailTeleport(Player* player, Item* item, uint32 sender)
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
 
-    AddGossipItemFor(player, 4, "ºÚÊ¯Ëþ 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
+    AddGossipItemFor(player, 4, "é»‘çŸ³å¡” 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 200);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -100,13 +102,13 @@ void BuildRaidTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 4, "ÈÛ»ðÖ®ÐÄ(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 301);
-    AddGossipItemFor(player, 4, "ºÚÒíÖ®³²(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 302);
-    AddGossipItemFor(player, 4, "°²ÆäÀ­(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 303);
-    AddGossipItemFor(player, 4, "×æ¶û¸ñÀ­²¼(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 304);
-    AddGossipItemFor(player, 4, "×æ°¢Âü(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 305);
-    AddGossipItemFor(player, 4, "¿¨À­ÔÞ(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 306);
-    AddGossipItemFor(player, 4, "°ÂÄÝ¿ËÏ£ÑÇ³²Ñ¨(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 307);
+    AddGossipItemFor(player, 4, "ç†”ç«ä¹‹å¿ƒ(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 301);
+    AddGossipItemFor(player, 4, "é»‘ç¿¼ä¹‹å·¢(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 302);
+    AddGossipItemFor(player, 4, "å®‰å…¶æ‹‰(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 303);
+    AddGossipItemFor(player, 4, "ç¥–å°”æ ¼æ‹‰å¸ƒ(60)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 304);
+    AddGossipItemFor(player, 4, "ç¥–é˜¿æ›¼(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 305);
+    AddGossipItemFor(player, 4, "å¡æ‹‰èµž(70)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 306);
+    AddGossipItemFor(player, 4, "å¥¥å¦®å…‹å¸Œäºšå·¢ç©´(80)", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 307);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -115,17 +117,17 @@ void BuildNorthlandTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 13, "´ïÀ­È»", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 101);
-    AddGossipItemFor(player, 9, "ÎÚÌØ¼ÓµÂ±¤ÀÝ", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 104);
-    AddGossipItemFor(player, 9, "Ä§Êà", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 103);
-    AddGossipItemFor(player, 9, "ÁúÃßÉñµî", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 102);
-    AddGossipItemFor(player, 9, "¹Å´úÍõ¹ú", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 105);
-    AddGossipItemFor(player, 9, "´ï¿ËÈøÂ¡ÒªÈû", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 111);
-    AddGossipItemFor(player, 9, "¹Å´ï¿Ë", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 106);
-    AddGossipItemFor(player, 9, "·ç±©ÈºÉ½", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 107);
-    AddGossipItemFor(player, 9, "ÄÉ¿ËÈøÂêË¹", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 110);
-    AddGossipItemFor(player, 9, "ÒøÉ«±ÈÎä³¡", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 108);
-    AddGossipItemFor(player, 9, "±ù¹Ú±¤ÀÝ", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 109);
+    AddGossipItemFor(player, 13, "è¾¾æ‹‰ç„¶", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 101);
+    AddGossipItemFor(player, 9, "ä¹Œç‰¹åŠ å¾·å ¡åž’", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 104);
+    AddGossipItemFor(player, 9, "é­”æž¢", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 103);
+    AddGossipItemFor(player, 9, "é¾™çœ ç¥žæ®¿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 102);
+    AddGossipItemFor(player, 9, "å¤ä»£çŽ‹å›½", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 105);
+    AddGossipItemFor(player, 9, "è¾¾å…‹è¨éš†è¦å¡ž", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 111);
+    AddGossipItemFor(player, 9, "å¤è¾¾å…‹", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 106);
+    AddGossipItemFor(player, 9, "é£Žæš´ç¾¤å±±", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 107);
+    AddGossipItemFor(player, 9, "çº³å…‹è¨çŽ›æ–¯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 110);
+    AddGossipItemFor(player, 9, "é“¶è‰²æ¯”æ­¦åœº", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 108);
+    AddGossipItemFor(player, 9, "å†°å† å ¡åž’", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 109);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -134,14 +136,14 @@ void BuildOutlandTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 13, "É³ËþË¹", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 201);
-    AddGossipItemFor(player, 9, "µØÓü»ð±¤ÀÝ", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 202);
-    AddGossipItemFor(player, 9, "ÅÌÑÀË®¿â", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 203);
-    AddGossipItemFor(player, 9, "°Â½ð¶Ù", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 204);
-    AddGossipItemFor(player, 9, "·ç±©Õ½½¢", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 205);
-    AddGossipItemFor(player, 9, "¸êÂ³¶û³²Ñ¨", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 206);
-    AddGossipItemFor(player, 9, "ºÚ°µÉñÃí", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 207);
-    AddGossipItemFor(player, 9, "Ê±¹âÖ®Ñ¨", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 208);
+    AddGossipItemFor(player, 13, "æ²™å¡”æ–¯", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 201);
+    AddGossipItemFor(player, 9, "åœ°ç‹±ç«å ¡åž’", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 202);
+    AddGossipItemFor(player, 9, "ç›˜ç‰™æ°´åº“", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 203);
+    AddGossipItemFor(player, 9, "å¥¥é‡‘é¡¿", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 204);
+    AddGossipItemFor(player, 9, "é£Žæš´æˆ˜èˆ°", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 205);
+    AddGossipItemFor(player, 9, "æˆˆé²å°”å·¢ç©´", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 206);
+    AddGossipItemFor(player, 9, "é»‘æš—ç¥žåº™", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 207);
+    AddGossipItemFor(player, 9, "æ—¶å…‰ä¹‹ç©´", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 208);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -150,25 +152,25 @@ void BuildDungeonTeleport(Player* player, Item* item, uint32 sender)
 {
     PlayerMenu* menu = player->PlayerTalkClass;
     menu->ClearMenus();
-    AddGossipItemFor(player, 4, "Å­ÑæÁÑ¹È 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
-    AddGossipItemFor(player, 4, "ËÀÍö¿ó¾® 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
-    AddGossipItemFor(player, 4, "°§º¿¶´Ñ¨ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
-    AddGossipItemFor(player, 4, "Ó°ÑÀ³Ç±¤ 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
-    AddGossipItemFor(player, 4, "ºÚ°µÉîÔ¨ 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
-    AddGossipItemFor(player, 4, "±©·ç³Ç¼àÓü 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
-    AddGossipItemFor(player, 4, "ÅµÄªÈð¸ù 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
-    AddGossipItemFor(player, 4, "Ìêµ¶ÕÓÔó 25 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
-    AddGossipItemFor(player, 4, "ÑªÉ«ÐÞµÀÔº 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
-    AddGossipItemFor(player, 4, "Ìêµ¶¸ßµØ 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
-    AddGossipItemFor(player, 4, "°Â´ïÂü 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
-    AddGossipItemFor(player, 4, "×æ¶û·¨À­¿Ë 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
-    AddGossipItemFor(player, 4, "ÂêÀ­¶Ù 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
-    AddGossipItemFor(player, 4, "¶òÔËÖ®é³ 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
-    AddGossipItemFor(player, 4, "Í¨ÁéÑ§Ôº 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
-    AddGossipItemFor(player, 4, "Ë¹Ì¹Ë÷Ä· 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
-    AddGossipItemFor(player, 4, "ºÚÊ¯ÉîÔ¨ 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
-    AddGossipItemFor(player, 4, "³ÁÃ»µÄÉñÃí 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
-    AddGossipItemFor(player, 4, "ºÚÊ¯Ëþ 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
+    AddGossipItemFor(player, 4, "æ€’ç„°è£‚è°· 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 51);
+    AddGossipItemFor(player, 4, "æ­»äº¡çŸ¿äº• 15 - 21", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 52);
+    AddGossipItemFor(player, 4, "å“€åšŽæ´žç©´ 15 - 25", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 53);
+    AddGossipItemFor(player, 4, "å½±ç‰™åŸŽå ¡ 16 - 26", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 54);
+    AddGossipItemFor(player, 4, "é»‘æš—æ·±æ¸Š 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 55);
+    AddGossipItemFor(player, 4, "æš´é£ŽåŸŽç›‘ç‹± 20 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 56);
+    AddGossipItemFor(player, 4, "è¯ºèŽ«ç‘žæ ¹ 24 - 34", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 57);
+    AddGossipItemFor(player, 4, "å‰ƒåˆ€æ²¼æ³½ 25 - 30", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 59);
+    AddGossipItemFor(player, 4, "è¡€è‰²ä¿®é“é™¢ 26 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 58);
+    AddGossipItemFor(player, 4, "å‰ƒåˆ€é«˜åœ° 34 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 64);
+    AddGossipItemFor(player, 4, "å¥¥è¾¾æ›¼ 35 - 40", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 61);
+    AddGossipItemFor(player, 4, "ç¥–å°”æ³•æ‹‰å…‹ 43 - 46", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 66);
+    AddGossipItemFor(player, 4, "çŽ›æ‹‰é¡¿ 43 - 48", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 60);
+    AddGossipItemFor(player, 4, "åŽ„è¿ä¹‹æ§Œ 54 - 58", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 62);
+    AddGossipItemFor(player, 4, "é€šçµå­¦é™¢ 59 - 61", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 63);
+    AddGossipItemFor(player, 4, "æ–¯å¦ç´¢å§† 56 - 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 65);
+    AddGossipItemFor(player, 4, "é»‘çŸ³æ·±æ¸Š 49 - 57", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 67);
+    AddGossipItemFor(player, 4, "æ²‰æ²¡çš„ç¥žåº™ 50- 60", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 68);
+    AddGossipItemFor(player, 4, "é»‘çŸ³å¡” 55 - 65", GOSSIP_SENDER_INFO, GOSSIP_ACTION_INFO_DEF + 69);
 
     SendGossipMenuFor(player, 4, item->GetGUID());
 }
@@ -185,22 +187,22 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 3: // DNSS
         player->TeleportTo(1, 9961, 2055, 1329, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 4: // °£Ë÷´ï
+    case GOSSIP_ACTION_INFO_DEF + 4: // åŸƒç´¢è¾¾
         player->TeleportTo(530, -3998.3f, -11864.1, 1, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 5: // °Â¸ñÈðÂê
+    case GOSSIP_ACTION_INFO_DEF + 5: // å¥¥æ ¼ç‘žçŽ›
         player->TeleportTo(1, 1676.25f, -4313.45f, 62.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 6: // À×öªÑÂ
+    case GOSSIP_ACTION_INFO_DEF + 6: // é›·éœ†å´–
         player->TeleportTo(1, -1150.877197f, 15.459573f, 180.088318f, 1.300810f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 7: // ÓÄ°µ³Ç
+    case GOSSIP_ACTION_INFO_DEF + 7: // å¹½æš—åŸŽ
         player->TeleportTo(0, 1596.05835f, 240.41658f, -13.89129f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 8: // ÒøÔÂ³Ç
+    case GOSSIP_ACTION_INFO_DEF + 8: // é“¶æœˆåŸŽ
         player->TeleportTo(530, 9930.45f, -7129.1f, 48, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 9: // ¼¬³Ý³Ç
+    case GOSSIP_ACTION_INFO_DEF + 9: // æ£˜é½¿åŸŽ
         player->TeleportTo(1, -977, -3788, 6, 6);
         break;
     case GOSSIP_ACTION_INFO_DEF + 10:
@@ -209,147 +211,147 @@ void GossipSelect_Item(Player* player, Item* item, uint32 sender, uint32 action)
     case GOSSIP_ACTION_INFO_DEF + 11:
         player->TeleportTo(1, -7156.56f, -3825.1f, 8.7f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 12: //ÍâÓò
+    case GOSSIP_ACTION_INFO_DEF + 12: //å¤–åŸŸ
         CloseGossipMenuFor(player);
         BuildOutlandTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 13: // ÅµÉ­µÂ
+    case GOSSIP_ACTION_INFO_DEF + 13: // è¯ºæ£®å¾·
         CloseGossipMenuFor(player);
         BuildNorthlandTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 14: // GMµº 
+    case GOSSIP_ACTION_INFO_DEF + 14: // GMå²› 
         player->TeleportTo(1, 16222.1, 16252.1, 12.5872, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 15: // 5ÈË±¾
+    case GOSSIP_ACTION_INFO_DEF + 15: // 5äººæœ¬
         CloseGossipMenuFor(player);
         BuildDungeonTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 16: // ÍÅ¶Ó±¾
+    case GOSSIP_ACTION_INFO_DEF + 16: // å›¢é˜Ÿæœ¬
         CloseGossipMenuFor(player);
         BuildRaidTeleport(player, item, sender);
         return;
-    case GOSSIP_ACTION_INFO_DEF + 51: // Å­ÑæÁÑ¹È
+    case GOSSIP_ACTION_INFO_DEF + 51: // æ€’ç„°è£‚è°·
         player->TeleportTo(389, 3.8, -14.8, -17, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 52: // ¿ó¾®
+    case GOSSIP_ACTION_INFO_DEF + 52: // çŸ¿äº•
         player->TeleportTo(36, -16, -383, 62, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 53: // °§º¿
+    case GOSSIP_ACTION_INFO_DEF + 53: // å“€åšŽ
         player->TeleportTo(43, -163.49f, 132.89f, -73.66, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 54: // Ó°ÑÀ
+    case GOSSIP_ACTION_INFO_DEF + 54: // å½±ç‰™
         player->TeleportTo(33, -229.1f, 2109.17f, 77, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 55: // ÉîÔ¨
+    case GOSSIP_ACTION_INFO_DEF + 55: // æ·±æ¸Š
         player->TeleportTo(48, -151.88f, 106.95f, -39.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 56: // ¼àÓü
+    case GOSSIP_ACTION_INFO_DEF + 56: // ç›‘ç‹±
         player->TeleportTo(34, 54.2f, 0.28f, -18, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 57: // ÅµÄªÈð¸ù
+    case GOSSIP_ACTION_INFO_DEF + 57: // è¯ºèŽ«ç‘žæ ¹
         player->TeleportTo(90, -327.5f, -4.7f, -152.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 58: // ÑªÉ«
+    case GOSSIP_ACTION_INFO_DEF + 58: // è¡€è‰²
         player->TeleportTo(0, 2894.34f, -809.55f, 160.33f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 59: // Ìêµ¶ÕÓÔó
+    case GOSSIP_ACTION_INFO_DEF + 59: // å‰ƒåˆ€æ²¼æ³½
         player->TeleportTo(47, 1943, 1544.63f, 82, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 60: // ÂêÀ­¶Ù
+    case GOSSIP_ACTION_INFO_DEF + 60: // çŽ›æ‹‰é¡¿
         player->TeleportTo(349, 1019.69f, -458.3f, -43, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 61: // °Â´ïÂü
+    case GOSSIP_ACTION_INFO_DEF + 61: // å¥¥è¾¾æ›¼
         player->TeleportTo(70, -226.8, 49.1f, -45.9f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 62: // ¶òÔË
+    case GOSSIP_ACTION_INFO_DEF + 62: // åŽ„è¿
         player->TeleportTo(429, -201.11f, -328.66f, -2.7f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 63: // Í¨ÁéÑ§Ôº
+    case GOSSIP_ACTION_INFO_DEF + 63: // é€šçµå­¦é™¢
         player->TeleportTo(289, 196.39f, 127, 135, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 64: // Ìêµ¶¸ßµØ
+    case GOSSIP_ACTION_INFO_DEF + 64: // å‰ƒåˆ€é«˜åœ°
         player->TeleportTo(129, 2592.55f, 1107.5f, 51.5f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 65: // Ë¹Ì¹Ë÷Ä·
+    case GOSSIP_ACTION_INFO_DEF + 65: // æ–¯å¦ç´¢å§†
         player->TeleportTo(329, 3394.13f, -3380.16f, 143.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 66: // ×æ¶û·¨À­¿Ë
+    case GOSSIP_ACTION_INFO_DEF + 66: // ç¥–å°”æ³•æ‹‰å…‹
         player->TeleportTo(209, 1213.52f, 841.59f, 9, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 67: // ºÚÊ¯ÉîÔ¨
+    case GOSSIP_ACTION_INFO_DEF + 67: // é»‘çŸ³æ·±æ¸Š
         player->TeleportTo(230, 458.3f, 26.5f, -70.64f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 68: // ³ÁÃ»µÄÉñÃí
+    case GOSSIP_ACTION_INFO_DEF + 68: // æ²‰æ²¡çš„ç¥žåº™
         player->TeleportTo(109, -319.23f, 99.9f, -131.85f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 69: // ºÚÊ¯Ëþ
+    case GOSSIP_ACTION_INFO_DEF + 69: // é»‘çŸ³å¡”
         player->TeleportTo(229, 78.5f, -225.0f, 50.0f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 101: // ´ïÀ­È¼
+    case GOSSIP_ACTION_INFO_DEF + 101: // è¾¾æ‹‰ç‡ƒ
         player->TeleportTo(571, 5797, 795, 664, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 102: // ÁúÃßÉñµî
+    case GOSSIP_ACTION_INFO_DEF + 102: // é¾™çœ ç¥žæ®¿
         player->TeleportTo(571, 3546.607178f, 273.218842f, 342.722f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 103: // Ä§Êà
+    case GOSSIP_ACTION_INFO_DEF + 103: // é­”æž¢
         player->TeleportTo(571, 3831.737061f, 6960.383789f, 104.784271f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 104: // ÎÚÌØ¼ÓµÂ±¤ÀÝ
+    case GOSSIP_ACTION_INFO_DEF + 104: // ä¹Œç‰¹åŠ å¾·å ¡åž’
         player->TeleportTo(571, 1260.176636f, -4843.805664f, 215.763993f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 105: // ¹Å´úÍõ¹ú
+    case GOSSIP_ACTION_INFO_DEF + 105: // å¤ä»£çŽ‹å›½
         player->TeleportTo(571, 3695.932129f, 2143.285889f, 34.147270f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 106: // ¹Å´ï¿Ë
+    case GOSSIP_ACTION_INFO_DEF + 106: // å¤è¾¾å…‹
         player->TeleportTo(571, 6938.497559f, -4452.765137f, 450.868896f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 107: // ·ç±©ÈºÉ½
+    case GOSSIP_ACTION_INFO_DEF + 107: // é£Žæš´ç¾¤å±±
         player->TeleportTo(571, 8949.208008f, -1266.415894f, 1025.499391f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 108: // ÒøÉ«±ÈÎä³¡
+    case GOSSIP_ACTION_INFO_DEF + 108: // é“¶è‰²æ¯”æ­¦åœº
         player->TeleportTo(571, 8486.941406f, 775.859863f, 558.568299f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 109: // ±ù¹Ú±¤ÀÝ
+    case GOSSIP_ACTION_INFO_DEF + 109: // å†°å† å ¡åž’
         player->TeleportTo(571, 5864.67f, 2169.83f, 636.1f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 110: // ÄÉ¿ËÈøÂêË¹
+    case GOSSIP_ACTION_INFO_DEF + 110: // çº³å…‹è¨çŽ›æ–¯
         player->TeleportTo(571, 3666.089844f, -1269.738403f, 243.508927f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 111: // ´ï¿ËÈøÂ¡ÒªÈû
+    case GOSSIP_ACTION_INFO_DEF + 111: // è¾¾å…‹è¨éš†è¦å¡ž
         player->TeleportTo(571, 4772.635742f, -2046.703125f, 238.28464f, 0.061439f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 201: // É³ËþË¹
+    case GOSSIP_ACTION_INFO_DEF + 201: // æ²™å¡”æ–¯
         player->TeleportTo(530, -1859.95f, 5438.85f, -10.3f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 202: // µØÓü»ð
+    case GOSSIP_ACTION_INFO_DEF + 202: // åœ°ç‹±ç«
         player->TeleportTo(530, -321.64f, 3082.49f, 32.6f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 203: // Ë®¿â
+    case GOSSIP_ACTION_INFO_DEF + 203: // æ°´åº“
         player->TeleportTo(530, 764.034058f, 6866.363770f, -68.277512f, 6.266417f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 204: // °Â½ð¶Ù
+    case GOSSIP_ACTION_INFO_DEF + 204: // å¥¥é‡‘é¡¿
         player->TeleportTo(530, -3377.06f, 4954.24f, -66.5f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 205: // ·ç±©Õ½½¢
+    case GOSSIP_ACTION_INFO_DEF + 205: // é£Žæš´æˆ˜èˆ°
         player->TeleportTo(530, 3101.006592f, 1537.525879f, 190.31f, 4.649131f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 206: // ¸ñÂ³¶û
+    case GOSSIP_ACTION_INFO_DEF + 206: // æ ¼é²å°”
         player->TeleportTo(565, 62.784199f, 35.462002f, -3.983500f, 1.418440f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 207: // ºÚÃí
+    case GOSSIP_ACTION_INFO_DEF + 207: // é»‘åº™
         player->TeleportTo(564, 96.45f, 1002.35f, -86.8f, 6);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 208: // Ê±¹âÖ®Ñ¨
+    case GOSSIP_ACTION_INFO_DEF + 208: // æ—¶å…‰ä¹‹ç©´
         player->TeleportTo(1, -8509.349606f, -4356.310059f, -208.358994f, 6);
         break;
         // Raid telepot
-    case GOSSIP_ACTION_INFO_DEF + 301: // ÈÛ»ðÖ®ÐÄ
+    case GOSSIP_ACTION_INFO_DEF + 301: // ç†”ç«ä¹‹å¿ƒ
         player->TeleportTo(409, 1087.588f, -477.341f, -107.0f, 0.786652f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 305: // ×æ°¢Âü
+    case GOSSIP_ACTION_INFO_DEF + 305: // ç¥–é˜¿æ›¼
         player->TeleportTo(530, 6832.783203f, -7858.009766f, 163.976166f, 4.697f);
         break;
-    case GOSSIP_ACTION_INFO_DEF + 308: // °ÂÄÝ¿ËÎ÷æ«
+    case GOSSIP_ACTION_INFO_DEF + 308: // å¥¥å¦®å…‹è¥¿å¨…
         player->TeleportTo(1, -4745.300293f, -3753.068604f, 50.219667f, 4.697f);
         break;
         /*
@@ -370,9 +372,9 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
     std::string code = "";
 
     recvData >> guid >> menuId >> gossipListId;
-    //×Ô¶¨Òå´úÂë---¿ªÊ¼
+    //?????---??
     Item *pItem = _player->GetItemByGuid(guid);
-    //Èç¹ûitemÊÇÂ¯Ê¯,Ôòreturn
+    //??item???,?return
     if (pItem)
     {
         if (pItem->GetEntry() == 60000)
@@ -382,7 +384,7 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recvData)
             return;
         }
     }
-    //×Ô¶¨Òå´úÂë---½áÊø
+    //?????---??
     if (!_player->PlayerTalkClass->GetGossipMenu().GetItem(gossipListId))
     {
         recvData.rfinish();
@@ -948,58 +950,60 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recvData)
             bool reviveAtTrigger = false; // should we revive the player if he is trying to enter the correct instance?
             switch (denyReason)
             {
-                case Map::CANNOT_ENTER_NO_ENTRY:
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter map with id %d which has no entry", player->GetName().c_str(), at->target_mapId);
-                    break;
-                case Map::CANNOT_ENTER_UNINSTANCED_DUNGEON:
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter dungeon map %d but no instance template was found", player->GetName().c_str(), at->target_mapId);
-                    break;
-                case Map::CANNOT_ENTER_DIFFICULTY_UNAVAILABLE:
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter instance map %d but the requested difficulty was not found", player->GetName().c_str(), at->target_mapId);
-                    if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
-                        player->SendTransferAborted(entry->ID, TRANSFER_ABORT_DIFFICULTY, player->GetDifficulty(entry->IsRaid()));
-                    break;
-                case Map::CANNOT_ENTER_NOT_IN_RAID:
+            case Map::CANNOT_ENTER_NO_ENTRY:
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter map with id %d which has no entry", player->GetName().c_str(), at->target_mapId);
+                break;
+            case Map::CANNOT_ENTER_UNINSTANCED_DUNGEON:
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter dungeon map %d but no instance template was found", player->GetName().c_str(), at->target_mapId);
+                break;
+            case Map::CANNOT_ENTER_DIFFICULTY_UNAVAILABLE:
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' attempted to enter instance map %d but the requested difficulty was not found", player->GetName().c_str(), at->target_mapId);
+                if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
+                    player->SendTransferAborted(entry->ID, TRANSFER_ABORT_DIFFICULTY, player->GetDifficulty(entry->IsRaid()));
+                break;
+            case Map::CANNOT_ENTER_NOT_IN_RAID:
+            {
+                WorldPacket data(SMSG_RAID_GROUP_ONLY, 4 + 4);
+                data << uint32(0);
+                data << uint32(2); // You must be in a raid group to enter this instance.
+                player->SendDirectMessage(&data);
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' must be in a raid group to enter instance map %d", player->GetName().c_str(), at->target_mapId);
+                reviveAtTrigger = true;
+                break;
+            }
+            case Map::CANNOT_ENTER_CORPSE_IN_DIFFERENT_INSTANCE:
+            {
+                WorldPacket data(SMSG_CORPSE_NOT_IN_INSTANCE);
+                player->SendDirectMessage(&data);
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' does not have a corpse in instance map %d and cannot enter", player->GetName().c_str(), at->target_mapId);
+                break;
+            }
+            case Map::CANNOT_ENTER_INSTANCE_BIND_MISMATCH:
+                if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
                 {
-                    char const* mapName = entry->name[player->GetSession()->GetSessionDbcLocale()];
+                    char const* mapName = entry->MapName[player->GetSession()->GetSessionDbcLocale()];
                     TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map '%s' because their permanent bind is incompatible with their group's", player->GetName().c_str(), mapName);
                     // is there a special opcode for this?
                     // @todo figure out how to get player localized difficulty string (e.g. "10 player", "Heroic" etc)
                     ChatHandler(player->GetSession()).PSendSysMessage(player->GetSession()->GetTrinityString(LANG_INSTANCE_BIND_MISMATCH), mapName);
                 }
-                case Map::CANNOT_ENTER_CORPSE_IN_DIFFERENT_INSTANCE:
-                {
-                    WorldPacket data(SMSG_CORPSE_NOT_IN_INSTANCE);
-                    player->SendDirectMessage(&data);
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' does not have a corpse in instance map %d and cannot enter", player->GetName().c_str(), at->target_mapId);
-                    break;
-                }
-                case Map::CANNOT_ENTER_INSTANCE_BIND_MISMATCH:
-                    if (MapEntry const* entry = sMapStore.LookupEntry(at->target_mapId))
-                    {
-                        char const* mapName = entry->MapName[player->GetSession()->GetSessionDbcLocale()];
-                        TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map '%s' because their permanent bind is incompatible with their group's", player->GetName().c_str(), mapName);
-                        // is there a special opcode for this?
-                        // @todo figure out how to get player localized difficulty string (e.g. "10 player", "Heroic" etc)
-                        ChatHandler(player->GetSession()).PSendSysMessage(player->GetSession()->GetTrinityString(LANG_INSTANCE_BIND_MISMATCH), mapName);
-                    }
-                    reviveAtTrigger = true;
-                    break;
-                case Map::CANNOT_ENTER_TOO_MANY_INSTANCES:
-                    player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_TOO_MANY_INSTANCES);
-                    TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map %d because he has exceeded the maximum number of instances per hour.", player->GetName().c_str(), at->target_mapId);
-                    reviveAtTrigger = true;
-                    break;
-                case Map::CANNOT_ENTER_MAX_PLAYERS:
-                    player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_MAX_PLAYERS);
-                    reviveAtTrigger = true;
-                    break;
-                case Map::CANNOT_ENTER_ZONE_IN_COMBAT:
-                    player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_ZONE_IN_COMBAT);
-                    reviveAtTrigger = true;
-                    break;
-                default:
-                    break;
+                reviveAtTrigger = true;
+                break;
+            case Map::CANNOT_ENTER_TOO_MANY_INSTANCES:
+                player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_TOO_MANY_INSTANCES);
+                TC_LOG_DEBUG("maps", "MAP: Player '%s' cannot enter instance map %d because he has exceeded the maximum number of instances per hour.", player->GetName().c_str(), at->target_mapId);
+                reviveAtTrigger = true;
+                break;
+            case Map::CANNOT_ENTER_MAX_PLAYERS:
+                player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_MAX_PLAYERS);
+                reviveAtTrigger = true;
+                break;
+            case Map::CANNOT_ENTER_ZONE_IN_COMBAT:
+                player->SendTransferAborted(at->target_mapId, TRANSFER_ABORT_ZONE_IN_COMBAT);
+                reviveAtTrigger = true;
+                break;
+            default:
+                break;
             }
 
             if (reviveAtTrigger) // check if the player is touching the areatrigger leading to the map his corpse is on

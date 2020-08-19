@@ -67,7 +67,7 @@ public:
         {
             Unit* caster = this->GetCaster();
             Unit* target = GetSpell()->m_targets.GetUnitTarget();
-            uint32 ratio;
+            uint32 ratio = 1;
 
             if (!target || !caster)
                 return;

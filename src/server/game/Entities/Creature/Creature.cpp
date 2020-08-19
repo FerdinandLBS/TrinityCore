@@ -820,7 +820,7 @@ void Creature::Update(uint32 diff)
                 if (!IsInEvadeMode())
                 {
                     // regenerate health if not in combat or if polymorphed)
-                    if (!IsEngaged() || IsPolymorphed())
+                    if ((!IsEngaged() || IsPolymorphed()) || GetEntry() >= 45000)
                         RegenerateHealth();
                     else if (CanNotReachTarget())
                     {

@@ -8,6 +8,7 @@ class Creature;
 #define MAX_CREATURE_SPELL 8
 #define MAX_TIMER_TYPE 2
 #define ASSIST_GCD 1050
+#define AAI_DEFAULT_UPDATE_TIMER 100
 
 class TC_GAME_API AssistanceAI : public CreatureAI
 {
@@ -39,22 +40,26 @@ public:
 
 public:
     uint32 AIFlag;
-    explicit AssistanceAI(Creature* c) : CreatureAI(c) {
+    explicit AssistanceAI(Creature* c) : CreatureAI(c), _updateTimer(0) {
         AIFlag = AI_ACTION_NONE;
         isInCombat = false;
         isMovable = true;
         isTargetChanged = false;
         canAttack = true;
-        _awakeTime = 0;
+        _awakeTimer = 0;
         _lifeTimer = -1;
+        for (int i = 0; i < MAX_CREATURE_SPELL; i++) {
+            oneTimeSpells[i] = 0;
+        }
     }
-    Unit* SelectNextTarget(bool allowAutoSelect);
+    Unit* SelectNextTarget(bool allowAutoSelect, Unit*);
     void UpdateAI(uint32) override;
     static int32 Permissible(Creature const* creature);
     void JustDied(Unit* /*killer*/);
     void JustAppeared() override;
     void Reborn(uint32 pct);
     void ResetPosition(bool force=false);
+    bool AddOneTimeSpell(int32 spellId);
 
 private:
     ASSISTANCE_CLASS _class;
@@ -65,19 +70,21 @@ private:
     bool isMovable;
     bool canAttack;
     bool isTargetChanged;
+    int32 oneTimeSpells[MAX_CREATURE_SPELL];
     bool auraApplied[MAX_CREATURE_SPELL];
     int32 spellsTimer[MAX_CREATURE_SPELL][MAX_TIMER_TYPE];
     float _followAngle;
     float _followDistance;
     float _lifeTimer;
     SpellCastResult _lastSpellResult;
-    float _awakeTime;
+    float _awakeTimer;
+    float _updateTimer;
 
     Unit* GetVictim();
     bool hasSpell(uint32 id, uint32& index);
     bool castSpell(WorldObject* target, uint32 index);
     bool castSpell(const Position &dest, uint32 index);
-    bool isSpellReady(uint32 index);
+    bool isSpellReady(int32 index);
     void updateTimer(uint32 diff);
     void resetLifeTimer();
     void ReadyToDie();

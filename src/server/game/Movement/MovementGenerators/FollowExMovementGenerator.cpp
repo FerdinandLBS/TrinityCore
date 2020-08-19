@@ -129,7 +129,7 @@ bool FollowExMovementGenerator::Update(Unit* owner, uint32 diff)
     if (!_lastTargetPosition || _lastTargetPosition->GetExactDistSq(target->GetPosition()) > 0.0f)
     {
         _lastTargetPosition = target->GetPosition();
-        if (owner->HasUnitState(UNIT_STATE_FOLLOW_MOVE) || !PositionOkay(owner, target, _range, nullptr))
+        if (owner->HasUnitState(UNIT_STATE_FOLLOW_MOVE) || !PositionOkay(owner, target, _range + FOLLOW_RANGE_TOLERANCE/2, nullptr))
         {
             if (!_path)
                 _path = std::make_unique<PathGenerator>(owner);
@@ -167,9 +167,9 @@ bool FollowExMovementGenerator::Update(Unit* owner, uint32 diff)
 
             Movement::MoveSplineInit init(owner);
             init.MovebyPath(_path->GetPath());
+            init.SetWalk(target->IsWalking());
             if (owner->IsHovering())
                 init.SetFly();
-            init.SetWalk(target->IsWalking());
             init.SetFacing(target->GetOrientation());
             init.Launch();
         }

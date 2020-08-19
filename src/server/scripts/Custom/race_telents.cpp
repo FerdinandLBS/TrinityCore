@@ -529,7 +529,7 @@ public:
         void HandleAfterCast() {
             Unit* owner = GetCaster();
             CastSpellExtraArgs args;
-            owner->m_Events.AddEvent(new SpellDelayCastEvent(87280, owner, GetSpell()->m_targets, args), owner->m_Events.CalculateTime(1100));
+            owner->m_Events.AddEvent(new SpellDelayCastEvent(87280, owner, GetSpell()->m_targets, args), owner->m_Events.CalculateTime(Milliseconds(1100)));
             //owner->CastSpell(GetSpell()->m_targets, 87280, true);
         }
 

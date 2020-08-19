@@ -98,10 +98,48 @@ int32 AssistanceAI::Permissible(Creature const* creature)
     return PERMIT_BASE_NO;
 }
 
-Unit* AssistanceAI::SelectNextTarget(bool allowAutoSelect)
+Unit* getAttackerForHelper(Unit* unit, Unit* exclude)                 // If someone wants to help, who to give them
+{
+    Unit* victim;
+    if (!unit->IsEngaged())
+        return nullptr;
+
+    CombatManager const& mgr = unit->GetCombatManager();
+    // pick arbitrary targets; our pvp combat > owner's pvp combat > our pve combat > owner's pve combat
+    Unit* owner = unit->GetCharmerOrOwner();
+    if (mgr.HasPvECombat()) {
+        for (auto const& pair : mgr.GetPvECombatRefs()) {
+            victim = pair.second->GetOther(unit);
+            if (victim != exclude) {
+                return victim;
+            }
+        }
+    }
+    if (owner && (owner->GetCombatManager().HasPvECombat())) {
+        for (auto const& pair : owner->GetCombatManager().GetPvECombatRefs()) {
+            victim = pair.second->GetOther(unit);
+            if (victim != exclude) {
+                return victim;
+            }
+        }
+    }
+    if (mgr.HasPvPCombat()) {
+        for (auto const& pair : mgr.GetPvPCombatRefs()) {
+            victim = pair.second->GetOther(unit);
+            if (victim != exclude) {
+                return victim;
+            }
+        }
+    }
+    if (owner && (owner->GetCombatManager().HasPvPCombat()))
+        return owner->GetCombatManager().GetPvPCombatRefs().begin()->second->GetOther(owner);
+    return nullptr;
+}
+
+Unit* AssistanceAI::SelectNextTarget(bool allowAutoSelect, Unit* exclude)
 {
     // Check pet attackers first so we don't drag a bunch of targets to the owner
-    if (Unit* myAttacker = me->getAttackerForHelper())
+    if (Unit* myAttacker = getAttackerForHelper(me, exclude))
         if (!myAttacker->HasBreakableByDamageCrowdControlAura())
             return myAttacker;
 
@@ -145,7 +183,10 @@ bool AssistanceAI::castSpell(const Position &dest, uint32 index) {
     return false;
 }
 
-bool AssistanceAI::isSpellReady(uint32 index) {
+bool AssistanceAI::isSpellReady(int32 index) {
+    if (index < 0)
+        return true;
+
     return (spellsTimer[index][SPELL_TIMER_CURRENT] >= spellsTimer[index][SPELL_TIMER_ORIGIN] && gcd >= ASSIST_GCD);
 };
 
@@ -164,8 +205,10 @@ Unit* AssistanceAI::GetVictim() {
         goto bail;
     }
     isTargetChanged = false;
-    if (nullptr == (victim = me->GetVictim())) {
-        victim = SelectNextTarget(false);
+    victim = me->GetVictim();
+    if (nullptr == victim || victim->IsIgnoringCombat() || victim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE)) {
+        me->DisengageWithTarget(victim);
+        victim = SelectNextTarget(false, victim);
         if (victim) {
             me->Attack(victim, !isCaster());
             isTargetChanged = true;
@@ -198,6 +241,8 @@ bail:
 }
 
 bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
+    uint32 id;
+
     if (me->GetEntry() < 45000) {
         if (me->GetEntry() < 40000)
             return false;
@@ -208,10 +253,21 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
     if (me->HasUnitState(UNIT_STATE_CASTING) || me->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
         return true;
 
-    uint32 i = 0;
+    uint32 i = -MAX_CREATURE_SPELL;
  redo:
     for (; i < MAX_CREATURE_SPELL && casted == false; i++) {
-        const SpellInfo* si = sSpellMgr->GetSpellInfo(me->m_spells[i]);
+        const SpellInfo* si = nullptr;
+
+        if (i < 0) {
+            if (oneTimeSpells[i + MAX_CREATURE_SPELL])
+                id = oneTimeSpells[i + MAX_CREATURE_SPELL];
+            else
+                continue;
+        }
+        else
+            id = me->m_spells[i];
+
+        si = sSpellMgr->GetSpellInfo(id);
         _lastSpellResult = SpellCastResult::SPELL_CAST_OK;
         if (si == nullptr)
             return false;
@@ -221,10 +277,9 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
         }
 
         // Take care of specail AI
-        switch (me->m_spells[i]) {
+        switch (id) {
         case 85871: // Drain mana
-            if (me->GetPower(POWER_MANA) < me->GetMaxPower(POWER_MANA) / 2 &&
-                victim && victim->GetMaxPower(POWER_MANA) > me->GetMaxPower(POWER_MANA)/4) {
+            if (me->GetPower(POWER_MANA) < 175 && victim && victim->GetPower(POWER_MANA) > 56) {
                 break;
             }
             continue;
@@ -275,7 +330,7 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
         if (si->IsSelfCast() || si->Effects[0].Effect == SPELL_EFFECT_SUMMON) {
             if (si->Effects[0].IsEffect(SpellEffects::SPELL_EFFECT_APPLY_AURA) ||
                 si->Effects[0].IsEffect(SPELL_EFFECT_APPLY_AREA_AURA_RAID)) {
-                if (me->HasAura(me->m_spells[i])) {
+                if (me->HasAura(id)) {
                     continue;
                 }
             }
@@ -313,7 +368,7 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
 
 
             // If we are casting one debuff then check it
-            if (si->Effects[0].IsEffect(SPELL_EFFECT_APPLY_AURA) && victim->HasAura(me->m_spells[i]) && !si->Effects[1].IsEffect(SPELL_EFFECT_SCHOOL_DAMAGE))
+            if (si->Effects[0].IsEffect(SPELL_EFFECT_APPLY_AURA) && victim->HasAura(id) && !si->Effects[1].IsEffect(SPELL_EFFECT_SCHOOL_DAMAGE))
                 continue;
 
             casted = castSpell(victim, i);
@@ -451,6 +506,11 @@ void AssistanceAI::JustDied(Unit* killer) {
         if (nullptr != me->GetOwner()->ToPlayer() && me->GetEntry() < 46000) {
             me->Yell(".......", Language::LANG_UNIVERSAL);
         }
+
+        // Mage Assistant
+        if (me->GetEntry() == 46030) {
+            me->DespawnOrUnsummon(2s);
+        }
         //me->DespawnOrUnsummon(14000);
     }
 }
@@ -528,7 +588,7 @@ void AssistanceAI::UseInstanceHealing() {
         if (si == nullptr || !isSpellReady(i) || si->IsPassive())
             continue;
 
-        if (si->Effects[0].Effect != SPELL_EFFECT_HEAL || si->CastTimeEntry->CastTime > 0)
+        if (si->Effects[0].Effect != SPELL_EFFECT_HEAL || si->CastTimeEntry->Base > 0)
             continue;
 
         if (si->RangeEntry->ID == 1 && me->GetHealthPct() < 100.0f) {
@@ -588,11 +648,21 @@ void AssistanceAI::ResetPosition(bool force)
     }
 }
 
+bool AssistanceAI::AddOneTimeSpell(int32 spellId) {
+    for (int i = 0; i < MAX_CREATURE_SPELL; i++) {
+        if (oneTimeSpells[i] == 0) {
+            oneTimeSpells[i] = spellId;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void AssistanceAI::JustAppeared() {
     uint32 effSpell = 0;
     const char* greeting = getCustomGreeting(me->GetEntry());
     Player* owner = me->GetOwner()? me->GetOwner()->ToPlayer():nullptr;
-
 
     if (greeting)
         me->Say(greeting, Language::LANG_UNIVERSAL, me->GetOwner());
@@ -664,12 +734,12 @@ void AssistanceAI::JustAppeared() {
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
     case 46018:
-        _awakeTime = 1500;
+        _awakeTimer = 1500;
         effSpell = 85907;
         break;
     case 46023: // Hellfire
         me->SetVisible(false);
-        _awakeTime = 1800;
+        _awakeTimer = 1800;
         break;
     case 46003:
     case 46004:
@@ -709,7 +779,7 @@ void AssistanceAI::JustAppeared() {
     case 46020:
     case 46021:
     case 46019:
-        _awakeTime = 1500;
+        _awakeTimer = 1500;
         effSpell = 85907;
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
@@ -725,7 +795,7 @@ void AssistanceAI::JustAppeared() {
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
     case 46017:
-        _awakeTime = 4000;
+        _awakeTimer = 4000;
         break;
     case 46024:
         effSpell = 89001;
@@ -766,11 +836,19 @@ void AssistanceAI::EngagementStart(Unit* who) {
 
 void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
 {
+    if (_updateTimer > diff) {
+        _updateTimer -= diff;
+        return;
+    }
+    else {
+        _updateTimer = AAI_DEFAULT_UPDATE_TIMER;
+    }
+
     // We are not awaken. Do nothing
-    if (_awakeTime > 0) {
+    if (_awakeTimer > 0) {
         me->StopMoving();
-        _awakeTime -= diff;
-        if (_awakeTime <= 0) {
+        _awakeTimer -= diff;
+        if (_awakeTimer <= 0) {
             me->SetVisible(true);
         }
         return;
