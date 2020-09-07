@@ -1,4 +1,4 @@
-﻿/*
+/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -198,10 +198,10 @@ public:
 protected:
     Object();
 
-    void _InitValues();
-    void _Create(ObjectGuid::LowType guidlow, uint32 entry, HighGuid guidhigh);
-    std::string _ConcatFields(uint16 startIndex, uint16 size) const;
-    void _LoadIntoDataField(std::string const& data, uint32 startOffset, uint32 count);
+        void _InitValues();
+        void _Create(ObjectGuid::LowType guidlow, uint32 entry, HighGuid guidhigh);
+        std::string _ConcatFields(uint16 startIndex, uint16 size) const;
+        [[nodiscard]] bool _LoadIntoDataField(std::string const& data, uint32 startOffset, uint32 count);
 
     uint32 GetUpdateFieldData(Player const* target, uint32*& flags) const;
 
@@ -412,11 +412,11 @@ public:
     Creature* SummonTrigger(float x, float y, float z, float ang, Milliseconds despawnTime, CreatureAI* (*GetAI)(Creature*) = nullptr);
     void SummonCreatureGroup(uint8 group, std::list<TempSummon*>* list = nullptr);
 
-    Creature* FindNearestCreature(uint32 entry, float range, bool alive = true) const;
-    GameObject* FindNearestGameObject(uint32 entry, float range) const;
-    GameObject* FindNearestUnspawnedGameObject(uint32 entry, float range) const;
-    GameObject* FindNearestGameObjectOfType(GameobjectTypes type, float range) const;
-    Player* SelectNearestPlayer(float distance) const;
+        Creature*   FindNearestCreature(uint32 entry, float range, bool alive = true) const;
+        GameObject* FindNearestGameObject(uint32 entry, float range, bool spawnedOnly = true) const;
+        GameObject* FindNearestUnspawnedGameObject(uint32 entry, float range) const;
+        GameObject* FindNearestGameObjectOfType(GameobjectTypes type, float range) const;
+        Player* SelectNearestPlayer(float distance) const;
 
     virtual ObjectGuid GetOwnerGUID() const = 0;
     virtual ObjectGuid GetCharmerOrOwnerGUID() const { return GetOwnerGUID(); }
