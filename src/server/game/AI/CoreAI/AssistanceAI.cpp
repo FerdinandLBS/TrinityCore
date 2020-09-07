@@ -35,10 +35,10 @@
 #include "AssistanceAI.h"
 #include "TemporarySummon.h"
 #include "Pet.h"
-
-/////////////////
-// AggressorAI
-/////////////////
+#include "bot_ai.h"
+ /////////////////
+ // AggressorAI
+ /////////////////
 
 #pragma execution_character_set("utf-8")
 
@@ -46,10 +46,30 @@ const char* getCustomGreeting(int entry) {
     switch (entry) {
     case 45000:
         return "希望这次你准备了烈酒";
+    case 45001:
+        return "今天，争议将得到伸张！";
+    case 45002:
+        return "我，来自虚空";
     case 45003:
         return "我到了，让我们速战速决吧";
     case 45005:
         return "为了巫妖王！";
+    case 45006:
+        return "为了酋长而战！";
+    case 45007:
+        return "圣光指引着我";
+    case 45008:
+        return "你在玩弄危险的力量，凡人！";
+    case 45011:
+        return "我听到了自然的呼唤...";
+    case 45012:
+        return "你将感受到传说级别的痛苦";
+    case 45013:
+        return "什么事？";
+    case 45014:
+        return "渺小的凡人，何事召唤于我？";
+    case 45016:
+        return "辛多雷永垂不朽";
     case 46000:
         return "为您效劳";
     case 46030:
@@ -86,6 +106,7 @@ void UnitAddCriticalRate(Unit* who, int rate) {
     who->CastSpell(who, 88000, args);
 }
 
+
 //////////////////
 // Assistance AI
 //////////////////
@@ -98,8 +119,62 @@ int32 AssistanceAI::Permissible(Creature const* creature)
     return PERMIT_BASE_NO;
 }
 
-Unit* getAttackerForHelper(Unit* unit, Unit* exclude)                 // If someone wants to help, who to give them
+void AssistanceAI::stopCombatWith(Unit* victim) {
+    if (!victim)
+        return;
+    if (!victim->IsInCombatWith(me))
+        return;
+
+    auto ref = victim->GetCombatManager().GetPvECombatRefs().find(me->GetGUID());
+    if (ref != victim->GetCombatManager().GetPvECombatRefs().end()) {
+        ref->second->EndCombat();
+    }
+
+    Unit* owner = me->GetCharmerOrOwner();
+    if (owner && owner->IsInCombatWith(victim) && owner->GetMap()->IsRaid() == false) {
+        auto ref = owner->GetCombatManager().GetPvECombatRefs().find(victim->GetGUID());
+        if (ref != owner->GetCombatManager().GetPvECombatRefs().end()) {
+            ref->second->EndCombat();
+        }
+    }
+}
+
+bool AssistanceAI::canAttackTarget(Unit const* target)
 {
+    if (!target)
+        return false;
+
+    Unit* master = me->GetOwner();
+
+    uint8 followdist = 50;
+    float foldist = 36;
+
+    return
+        (target->IsAlive() && target->IsVisible() && me->IsValidAttackTarget(target) && target->isTargetableForAttack() &&
+            (me->CanSeeOrDetect(target) && target->InSamePhase(me)) &&
+            (!master->IsAlive() || target->IsControlledByPlayer() ||
+                (target->GetDistance(master) < foldist && me->GetDistance(master) < followdist)) &&//if master is killed pursue to the end
+            (target->IsHostileTo(master) || target->IsHostileTo(me) ||//if master is controlled
+                (target->GetReactionTo(me) < REP_FRIENDLY && (master->IsInCombat() || target->IsInCombat()))));
+}
+
+bool AssistanceAI::IsTargetValid(Unit* target, bool& endCombat) {
+    endCombat = false;
+    switch (target->GetEntry()) {
+    case 36954:
+        return false;
+    default:
+        if (!canAttackTarget(target)) {
+            endCombat = true;
+            return false;
+        }
+        return true;
+    }
+}
+
+Unit* AssistanceAI::getAttackerForHelper(Unit* unit)                 // If someone wants to help, who to give them
+{
+    bool endCombat;
     Unit* victim;
     if (!unit->IsEngaged())
         return nullptr;
@@ -109,51 +184,47 @@ Unit* getAttackerForHelper(Unit* unit, Unit* exclude)                 // If some
     Unit* owner = unit->GetCharmerOrOwner();
     if (mgr.HasPvECombat()) {
         for (auto const& pair : mgr.GetPvECombatRefs()) {
+            if (!pair.second) continue;
             victim = pair.second->GetOther(unit);
-            if (victim != exclude) {
+            if (IsTargetValid(victim, endCombat)) {
                 return victim;
+            }
+            else if (endCombat) {
+                stopCombatWith(victim);
             }
         }
     }
     if (owner && (owner->GetCombatManager().HasPvECombat())) {
         for (auto const& pair : owner->GetCombatManager().GetPvECombatRefs()) {
-            victim = pair.second->GetOther(unit);
-            if (victim != exclude) {
+            if (!pair.second) continue;
+            victim = pair.second->GetOther(owner);
+            if (IsTargetValid(victim, endCombat)) {
                 return victim;
+            }
+            else if (endCombat) {
+                stopCombatWith(victim);
             }
         }
     }
     if (mgr.HasPvPCombat()) {
-        for (auto const& pair : mgr.GetPvPCombatRefs()) {
-            victim = pair.second->GetOther(unit);
-            if (victim != exclude) {
-                return victim;
-            }
-        }
+        return mgr.GetPvPCombatRefs().begin()->second->GetOther(unit);
     }
     if (owner && (owner->GetCombatManager().HasPvPCombat()))
         return owner->GetCombatManager().GetPvPCombatRefs().begin()->second->GetOther(owner);
     return nullptr;
 }
 
-Unit* AssistanceAI::SelectNextTarget(bool allowAutoSelect, Unit* exclude)
+Unit* AssistanceAI::SelectNextTarget(bool allowAutoSelect)
 {
     // Check pet attackers first so we don't drag a bunch of targets to the owner
-    if (Unit* myAttacker = getAttackerForHelper(me, exclude))
-        if (!myAttacker->HasBreakableByDamageCrowdControlAura())
+    if (Unit* myAttacker = getAttackerForHelper(me))
+        if (!myAttacker->HasBreakableByDamageCrowdControlAura() && myAttacker != me->GetOwner())
             return myAttacker;
 
     // Not sure why we wouldn't have an owner but just in case...
     if (!me->GetCharmerOrOwner())
         return nullptr;
 
-    // Check owner attackers
-    if (Unit* ownerAttacker = me->GetCharmerOrOwner()->getAttackerForHelper())
-        if (!ownerAttacker->HasBreakableByDamageCrowdControlAura())
-            return ownerAttacker;
-
-    // Check owner victim
-    // 3.0.2 - Pets now start attacking their owners victim in defensive mode as soon as the hunter does
     if (Unit* ownerVictim = me->GetCharmerOrOwner()->GetVictim())
         return ownerVictim;
 
@@ -172,7 +243,7 @@ bool AssistanceAI::castSpell(WorldObject* target, uint32 index) {
     return false;
 }
 
-bool AssistanceAI::castSpell(const Position &dest, uint32 index) {
+bool AssistanceAI::castSpell(const Position& dest, uint32 index) {
     _lastSpellResult = me->CastSpell(dest, me->m_spells[index]);
 
     if (_lastSpellResult == SpellCastResult::SPELL_CAST_OK) {
@@ -198,43 +269,46 @@ float AssistanceAI::GetManaPct() {
 Unit* AssistanceAI::GetVictim() {
     Unit* victim = nullptr;
     Unit* owner = me->GetOwner();
+    bool reset = false;
 
     if (!me->IsAlive())
     {
         EngagementOver();
-        goto bail;
+        me->SetTarget(ObjectGuid::Empty);
+        return nullptr;
     }
     isTargetChanged = false;
     victim = me->GetVictim();
-    if (nullptr == victim || victim->IsIgnoringCombat() || victim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE)) {
-        me->DisengageWithTarget(victim);
-        victim = SelectNextTarget(false, victim);
-        if (victim) {
-            me->Attack(victim, !isCaster());
-            isTargetChanged = true;
+    if (nullptr == victim) {
+        victim = SelectNextTarget(false);
+
+        if (victim && canAttackTarget(victim)) {
+            reset = true;
+        }
+        else {
+            victim = nullptr;
         }
     }
+
     if (owner) {
         if (owner->IsEngaged()) {
             Unit* ownerTarget = ObjectAccessor::GetUnit(*owner, owner->GetTarget());
-            if (ownerTarget && ownerTarget->IsAlive() && ownerTarget->IsHostileTo(me)) {
+            if (ownerTarget && canAttackTarget(ownerTarget)) {
                 // If owner selected one enemy
-                victim = ownerTarget;
-                if (victim != me->GetVictim()) {
-                    me->Attack(victim, !isCaster());
-                    isTargetChanged = true;
+                if (victim != ownerTarget) {
+                    victim = ownerTarget;
+                    reset = true;
                 }
             }
         }
     }
 
-bail:
-    if (victim && !victim->IsAlive()) {
-        victim = nullptr;
-    }
-
     if (!victim) {
         me->SetTarget(ObjectGuid::Empty);
+        me->CombatStop();
+    }
+    else if (reset) {
+        isTargetChanged = true;
     }
 
     return victim;
@@ -253,13 +327,13 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
     if (me->HasUnitState(UNIT_STATE_CASTING) || me->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
         return true;
 
-    uint32 i = -MAX_CREATURE_SPELL;
- redo:
+    int32 i = -MAX_CREATURE_SPELL;
+redo:
     for (; i < MAX_CREATURE_SPELL && casted == false; i++) {
         const SpellInfo* si = nullptr;
 
         if (i < 0) {
-            if (oneTimeSpells[i + MAX_CREATURE_SPELL])
+            if (oneTimeSpells[i + MAX_CREATURE_SPELL] > 0)
                 id = oneTimeSpells[i + MAX_CREATURE_SPELL];
             else
                 continue;
@@ -305,6 +379,18 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
             if (!victim || !victim->HasUnitState(UNIT_STATE_CASTING)) {
                 continue;
             }
+            break;
+        case 85947: // Holy light
+        {
+            Unit* owner = me->GetCharmerOrOwner();
+            if (owner && owner->ToPlayer()) {
+                Unit* ot = owner->ToPlayer()->GetSelectedUnit();
+                if (ot && ot->IsFriendlyTo(owner) && ot->GetHealthPct() <= 99.99f) {
+                    casted = castSpell(ot, i);
+                    goto endloop;
+                }
+            }
+        }
             break;
         case 85953: // Dark Ceremony
             if (GetManaPct() >= 0.6f) {
@@ -354,7 +440,7 @@ bool AssistanceAI::AssistantsSpell(uint32 diff, Unit* victim) {
         // Range Attack
         if ((si->RangeEntry->ID == 1 && si->Effects[0].RadiusEntry) ||
             si->Effects[0].TargetA.GetTarget() == TARGET_UNIT_CONE_ENEMY_24) {
-            if (victim == nullptr || si->Effects[0].RadiusEntry->RadiusMax/2 <= me->GetDistance(victim))
+            if (victim == nullptr || si->Effects[0].RadiusEntry->RadiusMax / 2 <= me->GetDistance(victim))
                 continue;
 
             casted = castSpell(me, i);
@@ -432,21 +518,21 @@ endloop:
 
 float AssistanceAI::getSpecialFollowAngle() {
     uint32 index = 0;
-    for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
+    /*for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
         switch (me->m_spells[i]) {
         case 85990: // sword
             return 0.0f;
         case 86001: // tank
-            return static_cast<float>(-M_PI/4);
+            return static_cast<float>(-M_PI / 4);
         case 85980: // healer
-            return static_cast<float>(M_PI/4);
+            return static_cast<float>(M_PI / 4);
         case 85970: // mage
-            return static_cast<float>(3*M_PI/4);
+            return static_cast<float>(3 * M_PI / 4);
         case 85895: // assistance
-            return static_cast<float>(3*M_PI/2);
+            return static_cast<float>(3 * M_PI / 2);
         }
-    }
-    return static_cast<float>(rand_chance()*M_PI);
+    }*/
+    return static_cast<float>((rand() % 32) * M_PI / 16);
 }
 
 bool AssistanceAI::hasSpell(uint32 id, uint32& index) {
@@ -480,7 +566,7 @@ void AssistanceAI::Reborn(uint32 pct) {
         return;
     }
     me->setDeathState(ALIVE);
-    me->SetHealth(uint32(me->GetMaxHealth()*pct/100));
+    me->SetHealth(uint32(me->GetMaxHealth() * pct / 100));
     me->SetPower(POWER_MANA, uint32(me->GetMaxPower(POWER_MANA)));
     me->CastSpell(me, 85948);
     //me->m_Events.
@@ -536,7 +622,7 @@ void AssistanceAI::updateTimer(uint32 diff)
     if (timerReady) {
         for (uint32 i = 0; i < MAX_CREATURE_SPELL; i++) {
             if (me->m_spells[i]) {
-                if (spellsTimer[i][SPELL_TIMER_CURRENT] <  spellsTimer[i][SPELL_TIMER_ORIGIN])
+                if (spellsTimer[i][SPELL_TIMER_CURRENT] < spellsTimer[i][SPELL_TIMER_ORIGIN])
                     spellsTimer[i][SPELL_TIMER_CURRENT] += diff;
             }
             else {
@@ -565,11 +651,15 @@ void AssistanceAI::updateTimer(uint32 diff)
 
                 auraApplied[i] = false;
 
-                if ((si->Effects[0].Effect == SPELL_EFFECT_APPLY_AURA || si->Effects[0].Effect == SPELL_EFFECT_APPLY_AREA_AURA_RAID) && auraApplied[i] == false) {
+                if ((si->Effects[0].Effect == SPELL_EFFECT_APPLY_AURA || si->Effects[0].Effect == SPELL_EFFECT_APPLY_AREA_AURA_RAID || si->Effects[0].Effect == SPELL_EFFECT_APPLY_AREA_AURA_OWNER)
+                    && auraApplied[i] == false) {
                     if (si->GetRecoveryTime() == 0 &&
                         si->Id != 87278 &&
                         si->Id != 85891) {
-                        castSpell(me, i);
+                        if (si->Effects[0].TargetA.GetTarget() == TARGET_UNIT_MASTER)
+                            castSpell(me->GetOwner(), i);
+                        else
+                            castSpell(me, i);
                         auraApplied[i] = true;
                     }
                 }
@@ -640,7 +730,7 @@ void AssistanceAI::ResetPosition(bool force)
 
         me->StopMoving();
         me->GetMotionMaster()->Clear();
-        me->GetMotionMaster()->MoveFollowEx(me->GetCharmerOrOwner(), _followDistance, _followAngle);
+        me->GetMotionMaster()->MoveFollow(me->GetCharmerOrOwner(), _followDistance, _followAngle);
         if (!force) {
             isInCombat = false;
             me->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
@@ -659,10 +749,42 @@ bool AssistanceAI::AddOneTimeSpell(int32 spellId) {
     return false;
 }
 
+Creature* AssistanceAI::getOwnerPet() {
+    Unit* owner = me->GetCharmerOrOwner();
+
+    if (!owner)
+        return nullptr;
+
+    if (owner->ToPlayer()) {
+        return owner->ToPlayer()->GetPet();
+    }
+
+    // we are npc bot
+    if (owner->GetEntry() >= 70000) {
+        return ((bot_ai*)owner->GetAI())->GetBotsPet();
+    }
+
+    return nullptr;
+}
+
+bool checkGnomeWarlockTelantPets(Creature* currentPet, Creature* summoned) {
+    int entry;
+
+    if (!currentPet || !summoned)
+        return false;
+
+    entry = summoned->GetEntry();
+
+    return (entry == 46005 && (currentPet->GetEntry() == 17252 || currentPet->GetEntry() == 70505)) ||
+        (entry == 46004 && (currentPet->GetEntry() == 1863 || currentPet->GetEntry() == 70503)) ||
+        (entry == 46003 && (currentPet->GetEntry() == 417 || currentPet->GetEntry() == 70504));
+}
+
 void AssistanceAI::JustAppeared() {
     uint32 effSpell = 0;
+    bool playerOwner = false;
     const char* greeting = getCustomGreeting(me->GetEntry());
-    Player* owner = me->GetOwner()? me->GetOwner()->ToPlayer():nullptr;
+    Player* owner = me->GetOwner() ? me->GetOwner()->ToPlayer() : nullptr;
 
     if (greeting)
         me->Say(greeting, Language::LANG_UNIVERSAL, me->GetOwner());
@@ -672,11 +794,32 @@ void AssistanceAI::JustAppeared() {
 
     updateTimer(0);
 
+    if (!owner) {
+        Unit* o = me->GetCharmerOrOwner();
+
+        for (int i = 0; i < 3; i++) {
+            if (o) {
+                if (o->ToPlayer()) {
+                    owner = o->ToPlayer();
+                    break;
+                }
+                o = o->GetCharmerOrOwner();
+            } else
+                break;
+        }
+    }
+    else
+        playerOwner = true;
+
     //  War III heroes
     if (me->GetEntry() >= 45000 && me->GetEntry() <= 45100) {
         me->CastSpell(me, 86008);
-    } else if (owner) {
-        UnitAddCriticalRate(me, owner->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1+1) / 2 + owner->GetFloatValue(PLAYER_CRIT_PERCENTAGE) / 2);
+    }
+    else if (owner) {
+        if (playerOwner)
+            UnitAddCriticalRate(me, owner->GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + 1) / 2 + owner->GetFloatValue(PLAYER_CRIT_PERCENTAGE) / 2);
+        me->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+        me->SetByteValue(UNIT_FIELD_BYTES_2, 1, owner->GetByteValue(UNIT_FIELD_BYTES_2, 1));
     }
 
     _class = ASSISTANCE_CLASS::NONE;
@@ -711,7 +854,7 @@ void AssistanceAI::JustAppeared() {
     case 46002: // Wild Ghost
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         if (owner && owner->GetRace() == Races::RACE_BLOODELF) {
-            
+
         }
         break;
     case 46016:
@@ -730,29 +873,23 @@ void AssistanceAI::JustAppeared() {
     case 46011:
     case 46012:
     case 46015:
-    case 46028:
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
     case 46018:
         _awakeTimer = 1500;
         effSpell = 85907;
         break;
+    case 46032:
     case 46023: // Hellfire
         me->SetVisible(false);
-        _awakeTimer = 1800;
+        _awakeTimer = 1900;
         break;
     case 46003:
     case 46004:
-    case 46005:
-        if (owner && !owner->HasAura(87285)) {
-            Pet* pet = owner->GetPet();
+    case 46005: // Warlock pets. Check gnome talent
+        if (Creature* pet = getOwnerPet()) {
             uint32 entry = me->GetEntry();
-            if (pet &&
-                (
-                    (entry==46005 && pet->GetEntry()== 17252) ||
-                    (entry==46004 && pet->GetEntry()==1863) ||
-                    (entry==46003 && pet->GetEntry()==417)
-                )) {
+            if (pet && checkGnomeWarlockTelantPets(pet, me)) {
                 effSpell = 87285;
                 me->ToTempSummon()->m_timer = (uint32)-1;
                 me->ToTempSummon()->m_lifetime = (uint32)-1;
@@ -761,20 +898,15 @@ void AssistanceAI::JustAppeared() {
             }
         }
         break;
+    case 46025:
     case 46026:
         effSpell = 87285;
         me->ToTempSummon()->m_timer = (uint32)-1;
         me->ToTempSummon()->m_lifetime = (uint32)-1;
         _followDistance = 1;
         _followAngle = float(M_PI * 3 / 2);
-        break;
-    case 46025:
-        _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
-        me->ToTempSummon()->m_timer = (uint32)-1;
-        me->ToTempSummon()->m_lifetime = (uint32)-1;
-        _followDistance = 1;
-        _followAngle = float(M_PI *3 / 2);
-        effSpell = 87285;
+        if (me->GetEntry() == 46025)
+            _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
         break;
     case 46020:
     case 46021:
@@ -798,6 +930,7 @@ void AssistanceAI::JustAppeared() {
         _awakeTimer = 4000;
         break;
     case 46024:
+    case 46028:
         effSpell = 89001;
         me->AddUnitMovementFlag(MOVEMENTFLAG_HOVER);
         _type = ASSISTANCE_ATTACK_TYPE::ATTACK_TYPE_CASTER;
@@ -861,7 +994,7 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
     updateTimer(diff);
 
     // we are not in combat. return
-    if (!me->IsEngaged() && (!me->GetOwner() || !me->GetOwner()->IsEngaged()))
+    if (!me->IsInCombat() && (!me->GetOwner() || !me->GetOwner()->IsInCombat()))
         return ResetPosition();
 
     if (me->HasUnitState(UNIT_STATE_CASTING)) {
@@ -869,8 +1002,7 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
     }
 
     Unit* victim = GetVictim();
-
-    if (victim && victim->GetEntry() != 36954) {
+    if (victim) {
         if (!isInCombat) {
             isInCombat = true;
             me->StopMoving();
@@ -878,12 +1010,14 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
         }
 
         if (isTargetChanged == true) {
+            me->Attack(victim, !isCaster());
             if (!isCaster()) {
                 if (AIFlag == AI_ACTION_FLAG::AI_ACTION_NONE || isTargetChanged)
                     me->GetMotionMaster()->MoveChase(victim);
             }
         }
-    } else {
+    }
+    else {
         return ResetPosition();
     }
 
@@ -902,4 +1036,3 @@ void AssistanceAI::UpdateAI(uint32 diff/*diff*/)
         DoMeleeAttackIfReady();
     }
 }
-

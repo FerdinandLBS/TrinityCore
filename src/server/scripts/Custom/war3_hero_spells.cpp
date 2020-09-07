@@ -1,4 +1,4 @@
-
+﻿
 #include "ScriptMgr.h"
 #include "Containers.h"
 #include "DBCStores.h"
@@ -53,6 +53,39 @@ public:
     }
 };
 
+class spell_holly_light : public SpellScriptLoader
+{
+public:
+    spell_holly_light() : SpellScriptLoader("spell_holly_light") { }
+
+    class spell_holly_light_SpellScript : public SpellScript
+    {
+        PrepareSpellScript(spell_holly_light_SpellScript);
+
+        void HandleAfterCast() {
+            Unit* t;
+            Unit* u = GetCaster();
+            const Spell* si = GetSpell();
+
+            if (!u || !si || !(t = si->m_targets.GetUnitTarget()))
+                return;
+
+
+            HealInfo hi(u, t, t->GetMaxHealth() / 10, GetSpellInfo(), SpellSchoolMask::SPELL_SCHOOL_MASK_HOLY);
+            t->HealBySpell(hi, false);
+        }
+
+        void Register() override
+        {
+            AfterCast += SpellCastFn(spell_holly_light_SpellScript::HandleAfterCast);
+        }
+    };
+
+    SpellScript* GetSpellScript() const override
+    {
+        return new spell_holly_light_SpellScript();
+    }
+};
 
 class spell_dark_ceremony : public SpellScriptLoader
 {

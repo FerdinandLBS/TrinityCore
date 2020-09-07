@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -259,6 +259,9 @@ class TC_GAME_API Aura
         DynObjAura* ToDynObjAura() { if (GetType() == DYNOBJ_AURA_TYPE) return reinterpret_cast<DynObjAura*>(this); else return nullptr; }
         DynObjAura const* ToDynObjAura() const { if (GetType() == DYNOBJ_AURA_TYPE) return reinterpret_cast<DynObjAura const*>(this); else return nullptr; }
 
+        void setPeriodicMod(int32 v) { m_periodicMod = v; }
+        int32 getPeriodcMode() { return m_periodicMod; }
+
         template <class Script>
         Script* GetScript(std::string const& scriptName) const
         {
@@ -280,6 +283,7 @@ class TC_GAME_API Aura
         time_t const m_applyTime;
         WorldObject* const m_owner;
 
+        int32 m_periodicMod;                                // Mod of aura periodic timer
         int32 m_maxDuration;                                // Max aura duration
         int32 m_duration;                                   // Current time
         int32 m_timeCla;                                    // Timer for power per sec calcultion

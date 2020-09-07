@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -86,7 +86,9 @@ enum WarlockSpells
     SPELL_WARLOCK_FLAMESHADOW                       = 37379,
     SPELL_WARLOCK_GLYPH_OF_SUCCUBUS                 = 56250,
     SPELL_WARLOCK_IMPROVED_DRAIN_SOUL_R1            = 18213,
-    SPELL_WARLOCK_IMPROVED_DRAIN_SOUL_PROC          = 18371
+    SPELL_WARLOCK_IMPROVED_DRAIN_SOUL_PROC          = 18371,
+
+    SPELL_WARLOCK_HUMAN_TALENT                      = 87265
 };
 
 enum WarlockSpellIcons

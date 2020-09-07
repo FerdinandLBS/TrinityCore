@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -463,6 +463,8 @@ struct TC_GAME_API AuraCreateInfo
     ObjectGuid CastItemGUID;
     bool* IsRefresh = nullptr;
     bool ResetPeriodicTimer = true;
+    int32 periodicMod = 0;
+    int32 durationMod = 0;
 
     private:
         SpellInfo const* _spellInfo = nullptr;

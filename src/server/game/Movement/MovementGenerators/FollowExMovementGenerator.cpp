@@ -29,12 +29,12 @@ FollowExMovementGenerator::FollowExMovementGenerator(Unit* target, float range, 
 }
 FollowExMovementGenerator::~FollowExMovementGenerator() = default;
 
-static bool PositionOkay(Unit* owner, Unit* target, float range, float* distance, Optional<ChaseAngle> angle = {})
+static bool PositionOkay(Unit * owner, Unit * target, float range, float* distance, Optional<ChaseAngle> angle = {})
 {
     float dis = owner->GetExactDistSq(target);
 
     if (distance)
-        *distance = std::sqrt(dis)/3;
+        *distance = std::sqrt(dis) / 3;
 
     if (dis > square(owner->GetCombatReach() + target->GetCombatReach() + range))
         return false;
@@ -42,7 +42,7 @@ static bool PositionOkay(Unit* owner, Unit* target, float range, float* distance
     return !angle || angle->IsAngleOkay(target->GetRelativeAngle(owner));
 }
 
-void FollowExMovementGenerator::Initialize(Unit* owner)
+void FollowExMovementGenerator::Initialize(Unit * owner)
 {
     RemoveFlag(MOVEMENTGENERATOR_FLAG_INITIALIZATION_PENDING | MOVEMENTGENERATOR_FLAG_DEACTIVATED);
     AddFlag(MOVEMENTGENERATOR_FLAG_INITIALIZED);
@@ -57,14 +57,14 @@ void FollowExMovementGenerator::Initialize(Unit* owner)
     _lastTargetPosition.reset();
 }
 
-void FollowExMovementGenerator::Reset(Unit* owner)
+void FollowExMovementGenerator::Reset(Unit * owner)
 {
     RemoveFlag(MOVEMENTGENERATOR_FLAG_DEACTIVATED);
 
     Initialize(owner);
 }
 
-bool FollowExMovementGenerator::Update(Unit* owner, uint32 diff)
+bool FollowExMovementGenerator::Update(Unit * owner, uint32 diff)
 {
     float distance = 0;
 
@@ -105,7 +105,7 @@ bool FollowExMovementGenerator::Update(Unit* owner, uint32 diff)
                 return true;
             }
             else {
-                float k = 0.3f * (distance) + 0.2f;
+                float k = 0.3f * (distance)+0.2f;
 
                 if (k > 2)
                     k = 2;
@@ -129,7 +129,7 @@ bool FollowExMovementGenerator::Update(Unit* owner, uint32 diff)
     if (!_lastTargetPosition || _lastTargetPosition->GetExactDistSq(target->GetPosition()) > 0.0f)
     {
         _lastTargetPosition = target->GetPosition();
-        if (owner->HasUnitState(UNIT_STATE_FOLLOW_MOVE) || !PositionOkay(owner, target, _range + FOLLOW_RANGE_TOLERANCE/2, nullptr))
+        if (owner->HasUnitState(UNIT_STATE_FOLLOW_MOVE) || !PositionOkay(owner, target, _range + FOLLOW_RANGE_TOLERANCE / 2, nullptr))
         {
             if (!_path)
                 _path = std::make_unique<PathGenerator>(owner);
@@ -177,26 +177,26 @@ bool FollowExMovementGenerator::Update(Unit* owner, uint32 diff)
     return true;
 }
 
-void FollowExMovementGenerator::Deactivate(Unit* owner)
+void FollowExMovementGenerator::Deactivate(Unit * owner)
 {
     AddFlag(MOVEMENTGENERATOR_FLAG_DEACTIVATED);
     owner->ClearUnitState(UNIT_STATE_FOLLOW_MOVE);
 }
 
-void FollowExMovementGenerator::Finalize(Unit* owner, bool active, bool/* movementInform*/)
+void FollowExMovementGenerator::Finalize(Unit * owner, bool active, bool/* movementInform*/)
 {
     AddFlag(MOVEMENTGENERATOR_FLAG_FINALIZED);
+    owner->SetSpeed(MOVE_WALK, _walkSpeed);
+    owner->SetSpeed(MOVE_RUN, _runSpeed);
+    owner->SetSpeed(MOVE_SWIM, _swimSpeed);
     if (active)
     {
         owner->ClearUnitState(UNIT_STATE_FOLLOW_MOVE);
-        owner->SetSpeed(MOVE_WALK, _walkSpeed);
-        owner->SetSpeed(MOVE_RUN, _runSpeed);
-        owner->SetSpeed(MOVE_SWIM, _swimSpeed);
         UpdatePetSpeed(owner);
     }
 }
 
-void FollowExMovementGenerator::UpdatePetSpeed(Unit* owner)
+void FollowExMovementGenerator::UpdatePetSpeed(Unit * owner)
 {
     return;
     owner->UpdateSpeed(MOVE_RUN);

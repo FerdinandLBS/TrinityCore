@@ -52,13 +52,13 @@ public:
             oneTimeSpells[i] = 0;
         }
     }
-    Unit* SelectNextTarget(bool allowAutoSelect, Unit*);
+    Unit* SelectNextTarget(bool allowAutoSelect);
     void UpdateAI(uint32) override;
     static int32 Permissible(Creature const* creature);
     void JustDied(Unit* /*killer*/);
     void JustAppeared() override;
     void Reborn(uint32 pct);
-    void ResetPosition(bool force=false);
+    void ResetPosition(bool force = false);
     bool AddOneTimeSpell(int32 spellId);
 
 private:
@@ -80,16 +80,22 @@ private:
     float _awakeTimer;
     float _updateTimer;
 
+
+    Creature* getOwnerPet();
+    void stopCombatWith(Unit* a);
     Unit* GetVictim();
+    Unit* getAttackerForHelper(Unit* unit);
+    bool IsTargetValid(Unit* target, bool& endCombat);
+    bool canAttackTarget(Unit const* target);
     bool hasSpell(uint32 id, uint32& index);
     bool castSpell(WorldObject* target, uint32 index);
-    bool castSpell(const Position &dest, uint32 index);
+    bool castSpell(const Position& dest, uint32 index);
     bool isSpellReady(int32 index);
     void updateTimer(uint32 diff);
     void resetLifeTimer();
     void ReadyToDie();
     bool isCaster();
-    void EngagementStart(Unit * who);
+    void EngagementStart(Unit* who);
     float GetManaPct();
     bool AssistantsSpell(uint32 diff, Unit* victim);
     void UseInstanceHealing();

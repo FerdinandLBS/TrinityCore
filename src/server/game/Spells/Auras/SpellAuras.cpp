@@ -1,4 +1,4 @@
-/*
+﻿/*
  * This file is part of the TrinityCore Project. See AUTHORS file for Copyright information
  *
  * This program is free software; you can redistribute it and/or modify it
@@ -390,6 +390,8 @@ Aura* Aura::Create(AuraCreateInfo& createInfo)
         {
             aura = new UnitAura(createInfo);
 
+            aura->m_periodicMod = createInfo.periodicMod;
+
             // aura can be removed in Unit::_AddAura call
             if (aura->IsRemoved())
                 return nullptr;
@@ -435,7 +437,8 @@ m_procCooldown(TimePoint::min())
     if (m_spellInfo->ManaPerSecond || m_spellInfo->ManaPerSecondPerLevel)
         m_timeCla = 1 * IN_MILLISECONDS;
 
-    m_maxDuration = CalcMaxDuration(createInfo.Caster);
+    m_periodicMod = createInfo.periodicMod;
+    m_maxDuration = CalcMaxDuration(createInfo.Caster) + createInfo.durationMod;
     m_duration = m_maxDuration;
     m_procCharges = CalcMaxCharges(createInfo.Caster);
     m_isUsingCharges = m_procCharges != 0;
@@ -580,6 +583,10 @@ void Aura::_ApplyForTarget(Unit* target, Unit* caster, AuraApplication* auraApp)
             caster->GetSpellHistory()->StartCooldown(m_spellInfo, castItem ? castItem->GetEntry() : 0, nullptr, true);
         }
     }
+    //npcbot: infinity cd for bots
+    if (caster && m_spellInfo->IsCooldownStartedOnEvent() && caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->IsNPCBot())
+        caster->ToCreature()->AddBotSpellCooldown(m_spellInfo->Id, std::numeric_limits<uint32>::max());
+    //end npcbot
 }
 
 void Aura::_UnapplyForTarget(Unit* target, Unit* caster, AuraApplication* auraApp)
@@ -608,6 +615,11 @@ void Aura::_UnapplyForTarget(Unit* target, Unit* caster, AuraApplication* auraAp
     if (caster && GetSpellInfo()->IsCooldownStartedOnEvent())
         // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existed cases)
         caster->GetSpellHistory()->SendCooldownEvent(GetSpellInfo());
+
+    //npcbot: release cd state for bots
+    if (caster && m_spellInfo->IsCooldownStartedOnEvent() && caster->GetTypeId() == TYPEID_UNIT && caster->ToCreature()->IsNPCBot())
+        caster->ToCreature()->ReleaseBotSpellCooldown(m_spellInfo->Id);
+    //end npcbot
 }
 
 // removes aura from all targets
@@ -1702,6 +1714,20 @@ void Aura::HandleAuraSpecificMods(AuraApplication const* aurApp, Unit* caster, b
                     case 47788: // Guardian Spirit
                         if (removeMode != AURA_REMOVE_BY_EXPIRE)
                             break;
+
+                        //npcbot: handle Glyph of Guardian Spirit proc for bots
+                        if (Creature* bot = caster->ToCreature())
+                        {
+                            if (bot->IsNPCBot() && bot->HasSpellCooldown(47788))
+                            {
+                                bot->AddBotSpellCooldown(47788, 60000);
+                                bot->GetSpellHistory()->ResetCooldown(GetSpellInfo()->Id, true);
+                                bot->GetSpellHistory()->AddCooldown(GetSpellInfo()->Id, 0, std::chrono::seconds(60));
+                                break;
+                            }
+                        }
+                        //end npcbot
+
                         if (caster->GetTypeId() != TYPEID_PLAYER)
                             break;
 
